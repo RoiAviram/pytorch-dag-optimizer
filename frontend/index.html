@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PyTorch DAG Optimizer — Memory & Bandwidth Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- vis-network for interactive graph rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/standalone/umd/vis-network.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Header ───────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-left">
+      <span class="logo-icon">⬡</span>
+      <div>
+        <h1 class="header-title">PyTorch DAG Optimizer</h1>
+        <p class="header-sub">Memory &amp; Bandwidth Analyzer</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="badge" id="status-badge">● READY</span>
+    </div>
+  </header>
+
+  <!-- ── Main Layout ──────────────────────────────────────────── -->
+  <div class="layout">
+
+    <!-- Left control panel -->
+    <aside class="sidebar">
+
+      <section class="panel">
+        <h2 class="panel-title">Graph Source</h2>
+
+        <button id="btn-original"  class="btn btn-active"   onclick="loadGraph('original')">
+          <span class="btn-icon">◈</span>
+          Original Graph
+          <span class="btn-tag">71 nodes</span>
+        </button>
+        <button id="btn-optimized" class="btn" onclick="loadGraph('optimized')">
+          <span class="btn-icon" style="color:#00ffc8">◈</span>
+          Optimized Graph
+          <span class="btn-tag fused-tag">53 nodes</span>
+        </button>
+      </section>
+
+      <!-- Metrics -->
+      <section class="panel">
+        <h2 class="panel-title">Graph Metrics</h2>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">Total Nodes</div>
+            <div class="metric-value" id="m-nodes">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Edges</div>
+            <div class="metric-value" id="m-edges">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Fused Ops</div>
+            <div class="metric-value fused-val" id="m-fused">—</div>
+          </div>
+          <div class="metric-card wide">
+            <div class="metric-label">HBM Reads/Writes Eliminated</div>
+            <div class="metric-value accent" id="m-rw">—</div>
+          </div>
+          <div class="metric-card wide">
+            <div class="metric-label">Est. Bandwidth Freed</div>
+            <div class="metric-value accent" id="m-bw">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Optimization significance -->
+      <section class="panel">
+        <h2 class="panel-title">Optimization Impact</h2>
+        <div class="sig-grid">
+          <div id="sig-nodes" class="sig-item" data-name="Node Reduction"></div>
+          <div id="sig-edges" class="sig-item" data-name="Edge Reduction"></div>
+          <div id="sig-bw"    class="sig-item" data-name="HBM Traffic Cut"></div>
+          <div id="sig-tput" class="sig-item" data-name="Est. Throughput Gain"></div>
+        </div>
+        <p class="sig-note">Hover bars for methodology. Throughput gain is a
+          conservative estimate based on empirical Conv-BN-ReLU profiling data.</p>
+      </section>
+
+      <!-- Legend -->
+      <section class="panel">
+        <h2 class="panel-title">Node Legend</h2>
+        <div class="legend">
+          <div class="legend-item"><span class="dot dot-placeholder"></span>placeholder (input)</div>
+          <div class="legend-item"><span class="dot dot-module"></span>call_module (conv / bn / relu)</div>
+          <div class="legend-item"><span class="dot dot-function"></span>call_function (flatten / add)</div>
+          <div class="legend-item"><span class="dot dot-fused"></span>Fused_Conv_BN_ReLU ✦ glow</div>
+          <div class="legend-item"><span class="dot dot-output"></span>output</div>
+        </div>
+      </section>
+
+      <!-- Selected node info -->
+      <section class="panel" id="node-info-panel" style="display:none">
+        <h2 class="panel-title">Selected Node</h2>
+        <div id="node-info-body" class="node-info-body"></div>
+      </section>
+
+    </aside>
+
+    <!-- Graph canvas -->
+    <main class="canvas-wrap">
+      <div id="graph-canvas"></div>
+      <div class="canvas-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading graph…</p>
+      </div>
+      <div class="canvas-hint" id="canvas-hint">
+        Click a node to inspect its metadata
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ── Footer stats bar ─────────────────────────────────────── -->
+  <footer class="footer">
+    <span id="footer-graph-name" class="footer-item">—</span>
+    <span class="footer-sep">|</span>
+    <span id="footer-created" class="footer-item">—</span>
+    <span class="footer-sep">|</span>
+    <span class="footer-item">Topo-sort: <b>Kahn's BFS</b></span>
+    <span class="footer-sep">|</span>
+    <span class="footer-item">Model: <b>ResNet-18</b></span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1290 @@
+{
+  "metadata": {
+    "graph_name": "ResNet18",
+    "num_nodes": 71,
+    "num_edges": 78,
+    "created_at": "2026-04-14T09:30:53Z"
+  },
+  "nodes": [
+    {
+      "node_id": "x",
+      "op_type": "placeholder",
+      "name": "x",
+      "output_shape": [
+        1,
+        3,
+        224,
+        224
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "conv1",
+      "op_type": "call_module",
+      "name": "conv1",
+      "output_shape": [
+        1,
+        64,
+        112,
+        112
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "bn1",
+      "op_type": "call_module",
+      "name": "bn1",
+      "output_shape": [
+        1,
+        64,
+        112,
+        112
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "relu",
+      "op_type": "call_module",
+      "name": "relu",
+      "output_shape": [
+        1,
+        64,
+        112,
+        112
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "maxpool",
+      "op_type": "call_module",
+      "name": "maxpool",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "MaxPool2d"
+      }
+    },
+    {
+      "node_id": "layer1_0_conv1",
+      "op_type": "call_module",
+      "name": "layer1.0.conv1",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer1_0_bn1",
+      "op_type": "call_module",
+      "name": "layer1.0.bn1",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer1_0_relu",
+      "op_type": "call_module",
+      "name": "layer1.0.relu",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer1_0_conv2",
+      "op_type": "call_module",
+      "name": "layer1.0.conv2",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer1_0_bn2",
+      "op_type": "call_module",
+      "name": "layer1.0.bn2",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "add",
+      "op_type": "call_function",
+      "name": "add",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "layer1_0_relu_1",
+      "op_type": "call_module",
+      "name": "layer1.0.relu",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer1_1_conv1",
+      "op_type": "call_module",
+      "name": "layer1.1.conv1",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer1_1_bn1",
+      "op_type": "call_module",
+      "name": "layer1.1.bn1",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer1_1_relu",
+      "op_type": "call_module",
+      "name": "layer1.1.relu",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer1_1_conv2",
+      "op_type": "call_module",
+      "name": "layer1.1.conv2",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer1_1_bn2",
+      "op_type": "call_module",
+      "name": "layer1.1.bn2",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "add_1",
+      "op_type": "call_function",
+      "name": "add",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "layer1_1_relu_1",
+      "op_type": "call_module",
+      "name": "layer1.1.relu",
+      "output_shape": [
+        1,
+        64,
+        56,
+        56
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer2_0_conv1",
+      "op_type": "call_module",
+      "name": "layer2.0.conv1",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer2_0_downsample_0",
+      "op_type": "call_module",
+      "name": "layer2.0.downsample.0",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer2_0_bn1",
+      "op_type": "call_module",
+      "name": "layer2.0.bn1",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer2_0_downsample_1",
+      "op_type": "call_module",
+      "name": "layer2.0.downsample.1",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer2_0_relu",
+      "op_type": "call_module",
+      "name": "layer2.0.relu",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer2_0_conv2",
+      "op_type": "call_module",
+      "name": "layer2.0.conv2",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer2_0_bn2",
+      "op_type": "call_module",
+      "name": "layer2.0.bn2",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "add_2",
+      "op_type": "call_function",
+      "name": "add",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "layer2_0_relu_1",
+      "op_type": "call_module",
+      "name": "layer2.0.relu",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer2_1_conv1",
+      "op_type": "call_module",
+      "name": "layer2.1.conv1",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer2_1_bn1",
+      "op_type": "call_module",
+      "name": "layer2.1.bn1",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer2_1_relu",
+      "op_type": "call_module",
+      "name": "layer2.1.relu",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer2_1_conv2",
+      "op_type": "call_module",
+      "name": "layer2.1.conv2",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer2_1_bn2",
+      "op_type": "call_module",
+      "name": "layer2.1.bn2",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "add_3",
+      "op_type": "call_function",
+      "name": "add",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "layer2_1_relu_1",
+      "op_type": "call_module",
+      "name": "layer2.1.relu",
+      "output_shape": [
+        1,
+        128,
+        28,
+        28
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer3_0_conv1",
+      "op_type": "call_module",
+      "name": "layer3.0.conv1",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer3_0_downsample_0",
+      "op_type": "call_module",
+      "name": "layer3.0.downsample.0",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer3_0_bn1",
+      "op_type": "call_module",
+      "name": "layer3.0.bn1",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer3_0_downsample_1",
+      "op_type": "call_module",
+      "name": "layer3.0.downsample.1",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer3_0_relu",
+      "op_type": "call_module",
+      "name": "layer3.0.relu",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer3_0_conv2",
+      "op_type": "call_module",
+      "name": "layer3.0.conv2",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer3_0_bn2",
+      "op_type": "call_module",
+      "name": "layer3.0.bn2",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "add_4",
+      "op_type": "call_function",
+      "name": "add",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "layer3_0_relu_1",
+      "op_type": "call_module",
+      "name": "layer3.0.relu",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer3_1_conv1",
+      "op_type": "call_module",
+      "name": "layer3.1.conv1",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer3_1_bn1",
+      "op_type": "call_module",
+      "name": "layer3.1.bn1",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer3_1_relu",
+      "op_type": "call_module",
+      "name": "layer3.1.relu",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer3_1_conv2",
+      "op_type": "call_module",
+      "name": "layer3.1.conv2",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer3_1_bn2",
+      "op_type": "call_module",
+      "name": "layer3.1.bn2",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "add_5",
+      "op_type": "call_function",
+      "name": "add",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "layer3_1_relu_1",
+      "op_type": "call_module",
+      "name": "layer3.1.relu",
+      "output_shape": [
+        1,
+        256,
+        14,
+        14
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer4_0_conv1",
+      "op_type": "call_module",
+      "name": "layer4.0.conv1",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer4_0_downsample_0",
+      "op_type": "call_module",
+      "name": "layer4.0.downsample.0",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer4_0_bn1",
+      "op_type": "call_module",
+      "name": "layer4.0.bn1",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer4_0_downsample_1",
+      "op_type": "call_module",
+      "name": "layer4.0.downsample.1",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer4_0_relu",
+      "op_type": "call_module",
+      "name": "layer4.0.relu",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer4_0_conv2",
+      "op_type": "call_module",
+      "name": "layer4.0.conv2",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer4_0_bn2",
+      "op_type": "call_module",
+      "name": "layer4.0.bn2",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "add_6",
+      "op_type": "call_function",
+      "name": "add",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "layer4_0_relu_1",
+      "op_type": "call_module",
+      "name": "layer4.0.relu",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer4_1_conv1",
+      "op_type": "call_module",
+      "name": "layer4.1.conv1",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer4_1_bn1",
+      "op_type": "call_module",
+      "name": "layer4.1.bn1",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "layer4_1_relu",
+      "op_type": "call_module",
+      "name": "layer4.1.relu",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "layer4_1_conv2",
+      "op_type": "call_module",
+      "name": "layer4.1.conv2",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "Conv2d"
+      }
+    },
+    {
+      "node_id": "layer4_1_bn2",
+      "op_type": "call_module",
+      "name": "layer4.1.bn2",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "BatchNorm2d"
+      }
+    },
+    {
+      "node_id": "add_7",
+      "op_type": "call_function",
+      "name": "add",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "layer4_1_relu_1",
+      "op_type": "call_module",
+      "name": "layer4.1.relu",
+      "output_shape": [
+        1,
+        512,
+        7,
+        7
+      ],
+      "kwargs": {
+        "module_class": "ReLU"
+      }
+    },
+    {
+      "node_id": "avgpool",
+      "op_type": "call_module",
+      "name": "avgpool",
+      "output_shape": [
+        1,
+        512,
+        1,
+        1
+      ],
+      "kwargs": {
+        "module_class": "AdaptiveAvgPool2d"
+      }
+    },
+    {
+      "node_id": "flatten",
+      "op_type": "call_function",
+      "name": "flatten",
+      "output_shape": [
+        1,
+        512
+      ],
+      "kwargs": {}
+    },
+    {
+      "node_id": "fc",
+      "op_type": "call_module",
+      "name": "fc",
+      "output_shape": [
+        1,
+        1000
+      ],
+      "kwargs": {
+        "module_class": "Linear"
+      }
+    },
+    {
+      "node_id": "output",
+      "op_type": "output",
+      "name": "output",
+      "output_shape": [
+        1,
+        1000
+      ],
+      "kwargs": {}
+    }
+  ],
+  "edges": [
+    {
+      "src": "x",
+      "dst": "conv1"
+    },
+    {
+      "src": "conv1",
+      "dst": "bn1"
+    },
+    {
+      "src": "bn1",
+      "dst": "relu"
+    },
+    {
+      "src": "relu",
+      "dst": "maxpool"
+    },
+    {
+      "src": "maxpool",
+      "dst": "layer1_0_conv1"
+    },
+    {
+      "src": "maxpool",
+      "dst": "add"
+    },
+    {
+      "src": "layer1_0_conv1",
+      "dst": "layer1_0_bn1"
+    },
+    {
+      "src": "layer1_0_bn1",
+      "dst": "layer1_0_relu"
+    },
+    {
+      "src": "layer1_0_relu",
+      "dst": "layer1_0_conv2"
+    },
+    {
+      "src": "layer1_0_conv2",
+      "dst": "layer1_0_bn2"
+    },
+    {
+      "src": "layer1_0_bn2",
+      "dst": "add"
+    },
+    {
+      "src": "add",
+      "dst": "layer1_0_relu_1"
+    },
+    {
+      "src": "layer1_0_relu_1",
+      "dst": "layer1_1_conv1"
+    },
+    {
+      "src": "layer1_0_relu_1",
+      "dst": "add_1"
+    },
+    {
+      "src": "layer1_1_conv1",
+      "dst": "layer1_1_bn1"
+    },
+    {
+      "src": "layer1_1_bn1",
+      "dst": "layer1_1_relu"
+    },
+    {
+      "src": "layer1_1_relu",
+      "dst": "layer1_1_conv2"
+    },
+    {
+      "src": "layer1_1_conv2",
+      "dst": "layer1_1_bn2"
+    },
+    {
+      "src": "layer1_1_bn2",
+      "dst": "add_1"
+    },
+    {
+      "src": "add_1",
+      "dst": "layer1_1_relu_1"
+    },
+    {
+      "src": "layer1_1_relu_1",
+      "dst": "layer2_0_conv1"
+    },
+    {
+      "src": "layer1_1_relu_1",
+      "dst": "layer2_0_downsample_0"
+    },
+    {
+      "src": "layer2_0_conv1",
+      "dst": "layer2_0_bn1"
+    },
+    {
+      "src": "layer2_0_bn1",
+      "dst": "layer2_0_relu"
+    },
+    {
+      "src": "layer2_0_relu",
+      "dst": "layer2_0_conv2"
+    },
+    {
+      "src": "layer2_0_conv2",
+      "dst": "layer2_0_bn2"
+    },
+    {
+      "src": "layer2_0_bn2",
+      "dst": "add_2"
+    },
+    {
+      "src": "layer2_0_downsample_0",
+      "dst": "layer2_0_downsample_1"
+    },
+    {
+      "src": "layer2_0_downsample_1",
+      "dst": "add_2"
+    },
+    {
+      "src": "add_2",
+      "dst": "layer2_0_relu_1"
+    },
+    {
+      "src": "layer2_0_relu_1",
+      "dst": "layer2_1_conv1"
+    },
+    {
+      "src": "layer2_0_relu_1",
+      "dst": "add_3"
+    },
+    {
+      "src": "layer2_1_conv1",
+      "dst": "layer2_1_bn1"
+    },
+    {
+      "src": "layer2_1_bn1",
+      "dst": "layer2_1_relu"
+    },
+    {
+      "src": "layer2_1_relu",
+      "dst": "layer2_1_conv2"
+    },
+    {
+      "src": "layer2_1_conv2",
+      "dst": "layer2_1_bn2"
+    },
+    {
+      "src": "layer2_1_bn2",
+      "dst": "add_3"
+    },
+    {
+      "src": "add_3",
+      "dst": "layer2_1_relu_1"
+    },
+    {
+      "src": "layer2_1_relu_1",
+      "dst": "layer3_0_conv1"
+    },
+    {
+      "src": "layer2_1_relu_1",
+      "dst": "layer3_0_downsample_0"
+    },
+    {
+      "src": "layer3_0_conv1",
+      "dst": "layer3_0_bn1"
+    },
+    {
+      "src": "layer3_0_bn1",
+      "dst": "layer3_0_relu"
+    },
+    {
+      "src": "layer3_0_relu",
+      "dst": "layer3_0_conv2"
+    },
+    {
+      "src": "layer3_0_conv2",
+      "dst": "layer3_0_bn2"
+    },
+    {
+      "src": "layer3_0_bn2",
+      "dst": "add_4"
+    },
+    {
+      "src": "layer3_0_downsample_0",
+      "dst": "layer3_0_downsample_1"
+    },
+    {
+      "src": "layer3_0_downsample_1",
+      "dst": "add_4"
+    },
+    {
+      "src": "add_4",
+      "dst": "layer3_0_relu_1"
+    },
+    {
+      "src": "layer3_0_relu_1",
+      "dst": "layer3_1_conv1"
+    },
+    {
+      "src": "layer3_0_relu_1",
+      "dst": "add_5"
+    },
+    {
+      "src": "layer3_1_conv1",
+      "dst": "layer3_1_bn1"
+    },
+    {
+      "src": "layer3_1_bn1",
+      "dst": "layer3_1_relu"
+    },
+    {
+      "src": "layer3_1_relu",
+      "dst": "layer3_1_conv2"
+    },
+    {
+      "src": "layer3_1_conv2",
+      "dst": "layer3_1_bn2"
+    },
+    {
+      "src": "layer3_1_bn2",
+      "dst": "add_5"
+    },
+    {
+      "src": "add_5",
+      "dst": "layer3_1_relu_1"
+    },
+    {
+      "src": "layer3_1_relu_1",
+      "dst": "layer4_0_conv1"
+    },
+    {
+      "src": "layer3_1_relu_1",
+      "dst": "layer4_0_downsample_0"
+    },
+    {
+      "src": "layer4_0_conv1",
+      "dst": "layer4_0_bn1"
+    },
+    {
+      "src": "layer4_0_bn1",
+      "dst": "layer4_0_relu"
+    },
+    {
+      "src": "layer4_0_relu",
+      "dst": "layer4_0_conv2"
+    },
+    {
+      "src": "layer4_0_conv2",
+      "dst": "layer4_0_bn2"
+    },
+    {
+      "src": "layer4_0_bn2",
+      "dst": "add_6"
+    },
+    {
+      "src": "layer4_0_downsample_0",
+      "dst": "layer4_0_downsample_1"
+    },
+    {
+      "src": "layer4_0_downsample_1",
+      "dst": "add_6"
+    },
+    {
+      "src": "add_6",
+      "dst": "layer4_0_relu_1"
+    },
+    {
+      "src": "layer4_0_relu_1",
+      "dst": "layer4_1_conv1"
+    },
+    {
+      "src": "layer4_0_relu_1",
+      "dst": "add_7"
+    },
+    {
+      "src": "layer4_1_conv1",
+      "dst": "layer4_1_bn1"
+    },
+    {
+      "src": "layer4_1_bn1",
+      "dst": "layer4_1_relu"
+    },
+    {
+      "src": "layer4_1_relu",
+      "dst": "layer4_1_conv2"
+    },
+    {
+      "src": "layer4_1_conv2",
+      "dst": "layer4_1_bn2"
+    },
+    {
+      "src": "layer4_1_bn2",
+      "dst": "add_7"
+    },
+    {
+      "src": "add_7",
+      "dst": "layer4_1_relu_1"
+    },
+    {
+      "src": "layer4_1_relu_1",
+      "dst": "avgpool"
+    },
+    {
+      "src": "avgpool",
+      "dst": "flatten"
+    },
+    {
+      "src": "flatten",
+      "dst": "fc"
+    },
+    {
+      "src": "fc",
+      "dst": "output"
+    }
+  ]
+}
