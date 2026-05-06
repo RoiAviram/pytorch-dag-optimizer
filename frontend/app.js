@@ -2,33 +2,15 @@
  * app.js — PyTorch DAG Optimizer Frontend
  *
  * Responsibilities:
- *  - Fetch graph.json / optimized_graph.json from the server
- *  - Build vis-network datasets from our custom JSON schema
- *  - Colour / glow nodes by op_type and fused status
- *  - Update the metrics sidebar on each load
+ *  - Fetch built-in model list from /api/models
+ *  - Upload / select a model and POST to /api/analyze
+ *  - Render vis-network graph from the API response
+ *  - Update metrics sidebar dynamically
+ *  - Manage loading states with multi-step status indicators
  *  - Show node metadata on click
  */
 
 // ── Constants ──────────────────────────────────────────────────────────────
-
-const GRAPH_URLS = {
-  original:  '/output/graph.json',
-  optimized: '/output/optimized_graph.json',
-};
-
-// Bandwidth math constants:
-//   We assume each "intermediate" tensor (between conv→bn and bn→relu)
-//   is a 64-channel 112×112 single-precision activation (~3.2 MB).
-//   This is the stem's feature-map size; real layers vary but this gives
-//   a meaningful illustrative number.
-const BYTES_PER_INTERMEDIATE = 64 * 112 * 112 * 4;  // ~3.2 MB
-// Total HBM traffic budget of the original graph (all node outputs):
-// We treat each node as producing one feature-map read/write.
-const ORIGINAL_NODES   = 71;
-const ORIGINAL_EDGES   = 78;
-// Estimated throughput gain per fused chain (based on real-world profiling
-// data: Conv-BN-ReLU fusion typically saves 10-15% latency per ResNet block)
-const THROUGHPUT_GAIN_PER_CHAIN_PCT = 1.8;  // % per fused chain (conservative)
 
 // Node colour palette (matches style.css)
 const COLORS = {
@@ -36,16 +18,19 @@ const COLORS = {
   call_module:   { bg: '#1e3a5f', border: '#4f8ef7', font: '#c7dcff' },
   call_function: { bg: '#3d2800', border: '#f59e0b', font: '#fef3c7' },
   fused_op:      { bg: '#003d30', border: '#00ffc8', font: '#00ffc8' },
+  folded_op:     { bg: '#1a3320', border: '#4ade80', font: '#bbf7d0' },
   output:        { bg: '#4a0030', border: '#f472b6', font: '#fce7f3' },
   default:       { bg: '#1a2235', border: '#334155', font: '#e2e8f0' },
 };
 
 // ── State ──────────────────────────────────────────────────────────────────
 
-let network   = null;
-let nodesDS   = null;
-let edgesDS   = null;
-let activeKey = 'original';
+let network      = null;
+let nodesDS      = null;
+let edgesDS      = null;
+let activeKey    = null;     // 'original' | 'optimized'
+let selectedFile = null;     // File object from drag-and-drop or browse
+let analysisData = null;     // Full API response (both graphs + metrics)
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
@@ -59,7 +44,8 @@ function humanBytes(b) {
 }
 
 function nodeColour(node) {
-  if (node.op_type === 'fused_op') return COLORS.fused_op;
+  if (node.op_type === 'fused_op')  return COLORS.fused_op;
+  if (node.op_type === 'folded_op') return COLORS.folded_op;
   return COLORS[node.op_type] ?? COLORS.default;
 }
 
@@ -80,22 +66,21 @@ function fusedGlow(node) {
 function buildDatasets(graphData) {
   const visNodes = graphData.nodes.map(n => {
     const clr  = nodeColour(n);
-    const isFused = n.op_type === 'fused_op';
+    const isFused  = n.op_type === 'fused_op';
+    const isFolded = n.op_type === 'folded_op';
 
-    // Display label:
-    //  - Normal nodes: name (already short) + op_type
-    //  - Fused nodes : compact "⚡ Conv·BN·ReLU" + short layer key
-    //    The node_id looks like "fused_cbr_layer2_1_conv1"; we extract
-    //    the layer portion by stripping the "fused_cbr_" prefix and
-    //    the trailing "_conv1" / "_conv2" suffix.
     let label;
     if (isFused) {
-      // e.g. "fused_cbr_layer2_1_conv1" → "layer2_1"
       const key = n.node_id
         .replace(/^fused_cbr_/, '')
         .replace(/_conv\d+$/, '')
         .replace(/_/g, '.');
       label = `⚡ Conv·BN·ReLU\n${key}`;
+    } else if (isFolded) {
+      const key = n.node_id
+        .replace(/^folded_cb_/, '')
+        .replace(/_/g, '.');
+      label = `🔗 Conv·BN\n${key}`;
     } else {
       label = `${n.name}\n${n.op_type}`;
     }
@@ -103,8 +88,8 @@ function buildDatasets(graphData) {
     return {
       id:    n.node_id,
       label,
-      title: buildTooltip(n),    // HTML tooltip on hover
-      shape: isFused ? 'hexagon' : (n.op_type === 'placeholder' ? 'diamond' : 'box'),
+      title: buildTooltip(n),
+      shape: isFused ? 'hexagon' : isFolded ? 'hexagon' : (n.op_type === 'placeholder' ? 'diamond' : 'box'),
       color: {
         background:  clr.bg,
         border:      clr.border,
@@ -113,17 +98,15 @@ function buildDatasets(graphData) {
       },
       font: {
         color:    clr.font,
-        size:     isFused ? 12 : 11,
+        size:     (isFused || isFolded) ? 12 : 11,
         face:     'JetBrains Mono, monospace',
         multi:    'html',
       },
-      borderWidth:      isFused ? 2.5 : 1.5,
+      borderWidth:      (isFused || isFolded) ? 2.5 : 1.5,
       borderWidthSelected: 3,
-      size:             isFused ? 32 : 18,
-      // Constrain fused nodes to a fixed width so label never overflows
-      widthConstraint:  isFused ? { minimum: 100, maximum: 115 } : undefined,
+      size:             (isFused || isFolded) ? 32 : 18,
+      widthConstraint:  (isFused || isFolded) ? { minimum: 100, maximum: 115 } : undefined,
       ...fusedGlow(n),
-      // Attach raw data for click inspection
       _raw: n,
     };
   });
@@ -161,10 +144,10 @@ function buildTooltip(n) {
 
 // ── Metrics sidebar ────────────────────────────────────────────────────────
 
-function updateMetrics(graphData, key) {
-  const nodes  = graphData.metadata.num_nodes;
-  const edges  = graphData.metadata.num_edges;
-  const fusedN = graphData.nodes.filter(n => n.op_type === 'fused_op').length;
+function updateMetricsFromAPI(metrics) {
+  const nodes  = metrics.optimized_nodes;
+  const edges  = metrics.optimized_edges;
+  const fusedN = metrics.fused_ops;
 
   // ── Core counts ──────────────────────────────────────────────────────────
   el('m-nodes').textContent = nodes;
@@ -172,29 +155,35 @@ function updateMetrics(graphData, key) {
   el('m-fused').textContent = fusedN > 0 ? `${fusedN} chains` : '0';
 
   // ── R/W elimination ───────────────────────────────────────────────────────
-  const rwElim  = fusedN * 2;
-  const bwSaved = fusedN * 2 * BYTES_PER_INTERMEDIATE;
-  el('m-rw').textContent = rwElim > 0 ? `${rwElim} ops eliminated` : 'N/A';
-  el('m-bw').textContent = bwSaved > 0 ? `~${humanBytes(bwSaved)} freed` : 'N/A';
+  el('m-rw').textContent = metrics.hbm_rw_eliminated > 0
+    ? `${metrics.hbm_rw_eliminated} ops eliminated` : 'N/A';
+  el('m-bw').textContent = metrics.hbm_bandwidth_freed_bytes > 0
+    ? `${metrics.hbm_bandwidth_freed_human} freed` : 'N/A';
 
   // ── Significance measurements ─────────────────────────────────────────────
-  const nodeRedPct = ((ORIGINAL_NODES - nodes) / ORIGINAL_NODES * 100).toFixed(1);
-  const edgeRedPct = ((ORIGINAL_EDGES - edges) / ORIGINAL_EDGES * 100).toFixed(1);
-  // Bandwidth reduction relative to original graph's total HBM traffic
-  // (original: ORIGINAL_EDGES round-trips; optimized: edges + rwElim eliminated)
-  const bwRedPct   = (rwElim / (ORIGINAL_EDGES * 2) * 100).toFixed(1);
-  // Throughput estimate: empirical ~1.8% gain per fused chain (conservative)
-  const throughput = (fusedN * THROUGHPUT_GAIN_PER_CHAIN_PCT).toFixed(1);
-
-  // Render significance bars
-  setSignificance('sig-nodes', `${nodeRedPct}%`, parseFloat(nodeRedPct), 40,
+  setSignificance('sig-nodes', `${metrics.node_reduction_pct}%`,
+    metrics.node_reduction_pct, 60,
     'Node count reduction vs original graph');
-  setSignificance('sig-edges', `${edgeRedPct}%`, parseFloat(edgeRedPct), 40,
+  setSignificance('sig-edges', `${metrics.edge_reduction_pct}%`,
+    metrics.edge_reduction_pct, 60,
     'Edge count reduction vs original graph');
-  setSignificance('sig-bw',    `${bwRedPct}%`,   parseFloat(bwRedPct),   40,
+  setSignificance('sig-bw', `${metrics.hbm_traffic_cut_pct}%`,
+    metrics.hbm_traffic_cut_pct, 40,
     'HBM read/write traffic eliminated vs total original edge traversals');
-  setSignificance('sig-tput',  `~${throughput}%`, parseFloat(throughput), 20,
+  setSignificance('sig-tput', `~${metrics.est_throughput_gain_pct}%`,
+    metrics.est_throughput_gain_pct, 30,
     'Est. throughput gain (empirical: ~1.8% per Conv-BN-ReLU fusion, conservative)');
+}
+
+function updateMetricsForGraph(graphData, key) {
+  // When toggling between original/optimized, update the core counts
+  const nodes  = graphData.metadata.num_nodes;
+  const edges  = graphData.metadata.num_edges;
+  const fusedN = graphData.nodes.filter(n => n.op_type === 'fused_op').length;
+
+  el('m-nodes').textContent = nodes;
+  el('m-edges').textContent = edges;
+  el('m-fused').textContent = fusedN > 0 ? `${fusedN} chains` : '0';
 
   // Footer
   el('footer-graph-name').textContent = graphData.metadata.graph_name;
@@ -204,17 +193,11 @@ function updateMetrics(graphData, key) {
 
 /**
  * Render a significance bar into element #id.
- * @param {string} id       - element id
- * @param {string} label    - display text
- * @param {number} value    - numeric value (0-100)
- * @param {number} maxVal   - value that represents 100% of the bar
- * @param {string} tooltip  - hover explanation
  */
 function setSignificance(id, label, value, maxVal, tooltip) {
   const el_ = el(id);
   if (!el_) return;
   const pct   = Math.min(100, (value / maxVal) * 100);
-  // Colour: green when >15%, amber 8-15%, dim <8%
   const color = value >= 15 ? '#4ade80' : value >= 8 ? '#f59e0b' : '#64748b';
   el_.title = tooltip;
   el_.innerHTML = `
@@ -227,6 +210,31 @@ function setSignificance(id, label, value, maxVal, tooltip) {
     </div>`;
 }
 
+// ── Pipeline panel ─────────────────────────────────────────────────────────
+
+function renderPipeline(passResults) {
+  const body = el('pipeline-body');
+  if (!body || !passResults) return;
+
+  body.innerHTML = passResults.map(r => {
+    const deltaN = r.nodes_before - r.nodes_after;
+    const deltaE = r.edges_before - r.edges_after;
+    const deltaStr = deltaN > 0
+      ? `<span class="pipeline-item-delta">−${deltaN} nodes, −${deltaE} edges</span>`
+      : `<span class="pipeline-item-delta" style="color:var(--text-dim)">no change</span>`;
+
+    return `<div class="pipeline-item">
+      <div class="pipeline-item-header">
+        <span class="pipeline-item-name">${r.pass_name}</span>
+        ${deltaStr}
+      </div>
+      <div class="pipeline-item-stats">${r.nodes_before} → ${r.nodes_after} nodes | ${r.edges_before} → ${r.edges_after} edges</div>
+    </div>`;
+  }).join('');
+
+  el('pipeline-panel').style.display = 'block';
+}
+
 // ── Node click handler ─────────────────────────────────────────────────────
 
 function showNodeInfo(nodeId) {
@@ -235,7 +243,7 @@ function showNodeInfo(nodeId) {
   const n = nodeData._raw;
   if (!n) return;
 
-  const isFused = n.op_type === 'fused_op';
+  const isFused = n.op_type === 'fused_op' || n.op_type === 'folded_op';
   const shape   = n.output_shape ? `[${n.output_shape.join(', ')}]` : 'N/A';
   const klass   = n.kwargs?.module_class ?? '—';
   const fused   = n.kwargs?.fused_from;
@@ -259,6 +267,12 @@ function showNodeInfo(nodeId) {
       <span style="color:#94a3b8;font-size:10px;line-height:1.5">${n.kwargs.fusion_notes}</span>
     </div>`;
   }
+  if (n.kwargs?.fold_notes) {
+    html += `<div class="ni-row" style="flex-direction:column;gap:4px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">
+      <span class="ni-key">notes:</span>
+      <span style="color:#94a3b8;font-size:10px;line-height:1.5">${n.kwargs.fold_notes}</span>
+    </div>`;
+  }
 
   el('node-info-body').innerHTML = html;
   el('node-info-panel').style.display = 'block';
@@ -278,7 +292,7 @@ function renderGraph(graphData) {
     layout: {
       hierarchical: {
         enabled:          true,
-        direction:        'UD',          // top-to-bottom (matches forward pass)
+        direction:        'UD',
         sortMethod:       'directed',
         levelSeparation:  90,
         nodeSpacing:      120,
@@ -327,52 +341,332 @@ function renderGraph(graphData) {
   });
 }
 
-// ── Main loader ────────────────────────────────────────────────────────────
+// ── Loading overlay management ─────────────────────────────────────────────
+
+function showLoading(message) {
+  el('loading-overlay').style.display = 'flex';
+  el('loading-message').textContent = message || 'Processing…';
+  el('canvas-welcome').style.display = 'none';
+  // Reset all steps
+  ['step-upload', 'step-trace', 'step-optimize', 'step-metrics'].forEach(id => {
+    el(id).className = 'status-step';
+  });
+}
+
+function setStep(stepId) {
+  const steps = ['step-upload', 'step-trace', 'step-optimize', 'step-metrics'];
+  const idx = steps.indexOf(stepId);
+  steps.forEach((id, i) => {
+    if (i < idx)       el(id).className = 'status-step done';
+    else if (i === idx) el(id).className = 'status-step active';
+    else                el(id).className = 'status-step';
+  });
+}
+
+function hideLoading() {
+  el('loading-overlay').style.display = 'none';
+}
+
+// ── Error toast ────────────────────────────────────────────────────────────
+
+let errorTimeout = null;
+
+function showError(message) {
+  // Create or reuse toast
+  let toast = document.querySelector('.error-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'error-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = `⚠ ${message}`;
+  // Force reflow then show
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+
+  if (errorTimeout) clearTimeout(errorTimeout);
+  errorTimeout = setTimeout(() => toast.classList.remove('show'), 5000);
+}
+
+// ── Upload & Analysis ──────────────────────────────────────────────────────
+
+async function fetchModels() {
+  try {
+    const res = await fetch('/api/models');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const select = el('model-select');
+    select.innerHTML = '<option value="" disabled selected>Choose a model…</option>';
+    data.models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.display_name} — ${m.description}`;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Failed to fetch models:', err);
+    el('model-select').innerHTML = '<option value="" disabled selected>Could not load models</option>';
+  }
+}
+
+function updateAnalyzeButton() {
+  const hasModel = el('model-select').value !== '';
+  const hasFile  = selectedFile !== null;
+  el('analyze-btn').disabled = !(hasModel || hasFile);
+}
+
+async function analyzeModel() {
+  const btn = el('analyze-btn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="analyze-btn-icon">⏳</span> Analyzing…';
+
+  showLoading('Analyzing model architecture…');
+  setStep('step-upload');
+
+  el('status-badge').textContent = '● ANALYZING';
+  el('status-badge').style.color = '#f59e0b';
+
+  try {
+    const formData = new FormData();
+
+    if (selectedFile) {
+      formData.append('file', selectedFile);
+    } else {
+      formData.append('model_name', el('model-select').value);
+    }
+
+    // Simulate step progression (the backend does it all at once,
+    // but we animate the steps for UX)
+    setStep('step-upload');
+    await sleep(400);
+    setStep('step-trace');
+
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      body: formData,
+    });
+
+    setStep('step-optimize');
+    await sleep(300);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (data.status !== 'success') throw new Error(data.detail || 'Unknown error');
+
+    setStep('step-metrics');
+    await sleep(300);
+
+    // ── Store analysis data ─────────────────────────────────────────────
+    analysisData = data;
+
+    // ── Show results panels ─────────────────────────────────────────────
+    el('graph-source-panel').style.display = 'block';
+    el('metrics-panel').style.display      = 'block';
+    el('impact-panel').style.display       = 'block';
+
+    // Update button tags with actual node counts
+    el('tag-original').textContent  = `${data.metrics.original_nodes} nodes`;
+    el('tag-optimized').textContent = `${data.metrics.optimized_nodes} nodes`;
+
+    // ── Render the optimized graph by default ────────────────────────────
+    activeKey = null;
+    loadGraph('optimized');
+
+    // ── Update all metrics from API response ────────────────────────────
+    updateMetricsFromAPI(data.metrics);
+    renderPipeline(data.metrics.pass_results);
+
+    // ── Footer ──────────────────────────────────────────────────────────
+    el('footer-model-name').textContent = data.model_name;
+    el('footer-graph-name').textContent = data.optimized_graph.metadata.graph_name;
+    const ts = data.optimized_graph.metadata.optimized_at ?? '';
+    el('footer-created').textContent = ts ? `Generated: ${ts}` : '';
+
+    el('status-badge').textContent = '● READY';
+    el('status-badge').style.color = '#4ade80';
+
+  } catch (err) {
+    console.error('Analysis failed:', err);
+    showError(err.message);
+    el('status-badge').textContent = '● ERROR';
+    el('status-badge').style.color = '#ef4444';
+  } finally {
+    hideLoading();
+    btn.classList.remove('loading');
+    btn.innerHTML = '<span class="analyze-btn-icon">⚡</span> Analyze & Optimize';
+    updateAnalyzeButton();
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Graph loader (now reads from analysisData in memory) ───────────────────
 
 async function loadGraph(key) {
-  if (key === activeKey && network) return;   // no-op if already loaded
+  if (key === activeKey && network) return;
   activeKey = key;
 
   // Button state
   el('btn-original').classList.toggle('btn-active',  key === 'original');
   el('btn-optimized').classList.toggle('btn-active', key === 'optimized');
 
-  // Show loading overlay
+  if (!analysisData) return;
+
+  const graphData = key === 'original'
+    ? analysisData.original_graph
+    : analysisData.optimized_graph;
+
   const overlay = el('loading-overlay');
   overlay.style.display = 'flex';
+  el('loading-message').textContent = 'Rendering graph…';
+  // Hide status steps for simple graph switch
+  el('status-steps').style.display = 'none';
 
   el('status-badge').textContent = '● LOADING';
   el('status-badge').style.color = '#f59e0b';
 
   try {
-    const res = await fetch(GRAPH_URLS[key]);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const graphData = await res.json();
-
     renderGraph(graphData);
-    updateMetrics(graphData, key);
+    updateMetricsForGraph(graphData, key);
 
     el('status-badge').textContent = '● READY';
     el('status-badge').style.color = '#4ade80';
+    el('canvas-hint').style.display = 'block';
   } catch (err) {
-    console.error('Failed to load graph:', err);
+    console.error('Failed to render graph:', err);
+    showError('Failed to render graph');
     el('status-badge').textContent = '● ERROR';
     el('status-badge').style.color = '#ef4444';
-    el('graph-canvas').innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:#ef4444">
-        <span style="font-size:32px">⚠</span>
-        <p style="font-family:monospace;font-size:13px">Could not load ${GRAPH_URLS[key]}</p>
-        <p style="font-size:11px;color:#64748b">Make sure serve.py is running</p>
-      </div>`;
   } finally {
     overlay.style.display = 'none';
+    el('status-steps').style.display = 'flex';
   }
+}
+
+// ── Drag-and-drop handlers ─────────────────────────────────────────────────
+
+function initUploadZone() {
+  const zone  = el('upload-zone');
+  const input = el('file-input');
+
+  // Click to browse
+  zone.addEventListener('click', () => input.click());
+
+  // File selected via browse
+  input.addEventListener('change', () => {
+    if (input.files.length > 0) {
+      selectFile(input.files[0]);
+    }
+  });
+
+  // Drag events
+  zone.addEventListener('dragenter', e => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+  });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length > 0) {
+      selectFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  // Clear file button
+  el('upload-clear-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    clearFile();
+  });
+
+  // Model select change
+  el('model-select').addEventListener('change', () => {
+    // If user picks a built-in model, clear any uploaded file
+    clearFile();
+    updateAnalyzeButton();
+  });
+
+  // Analyze button
+  el('analyze-btn').addEventListener('click', analyzeModel);
+}
+
+function selectFile(file) {
+  if (!file.name.endsWith('.py')) {
+    showError('Only .py files are accepted');
+    return;
+  }
+  selectedFile = file;
+  el('upload-zone').style.display = 'none';
+  el('upload-filename').style.display = 'flex';
+  el('upload-filename-text').textContent = file.name;
+  // Clear model select since file takes precedence
+  el('model-select').value = '';
+  updateAnalyzeButton();
+}
+
+function clearFile() {
+  selectedFile = null;
+  el('file-input').value = '';
+  el('upload-zone').style.display = 'block';
+  el('upload-filename').style.display = 'none';
+  updateAnalyzeButton();
+}
+// ── Download optimized model ───────────────────────────────────────────────
+
+function downloadOptimizedGraph() {
+  if (!analysisData || !analysisData.optimized_graph) {
+    showError('No optimized graph available — run an analysis first.');
+    return;
+  }
+
+  // Build a comprehensive export payload
+  const exportData = {
+    _export_info: {
+      tool:        'PyTorch DAG Optimizer',
+      exported_at: new Date().toISOString(),
+      description: 'Optimized computation graph — topologically sorted via Kahn\'s BFS with fused/folded operators.',
+    },
+    model_name:       analysisData.model_name,
+    optimized_graph:  analysisData.optimized_graph,
+    metrics:          analysisData.metrics,
+    memory_analysis:  analysisData.memory_analysis,
+  };
+
+  const json = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+
+  // Build filename from model name
+  const safeName = (analysisData.model_name || 'model')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+
+  const a = document.createElement('a');
+  a.href     = url;
+  a.download = `${safeName}_optimized_dag.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Force active key to null so first load always runs
-  activeKey = null;
-  loadGraph('original');
+  initUploadZone();
+  fetchModels();
 });

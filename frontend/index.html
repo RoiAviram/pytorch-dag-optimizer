@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PyTorch DAG Optimizer — Memory & Bandwidth Analyzer</title>
+  <meta name="description" content="Interactive visualization and optimization of PyTorch computation graphs using Kahn's algorithm, operator fusion, and memory bandwidth analysis." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <!-- vis-network for interactive graph rendering -->
@@ -32,23 +33,71 @@
     <!-- Left control panel -->
     <aside class="sidebar">
 
-      <section class="panel">
+      <!-- ── Model Upload Panel (NEW) ─────────────────────────── -->
+      <section class="panel upload-panel" id="upload-panel">
+        <h2 class="panel-title">Analyze Model</h2>
+
+        <!-- Built-in model selector -->
+        <label class="select-label" for="model-select">Built-in Model</label>
+        <select id="model-select" class="model-select">
+          <option value="" disabled selected>Loading models…</option>
+        </select>
+
+        <!-- Divider -->
+        <div class="upload-divider">
+          <span class="upload-divider-line"></span>
+          <span class="upload-divider-text">or upload .py</span>
+          <span class="upload-divider-line"></span>
+        </div>
+
+        <!-- Drag-and-drop zone -->
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-zone-icon" id="upload-zone-icon">📂</div>
+          <div class="upload-zone-text" id="upload-zone-text">
+            Drag & drop a <code>.py</code> model file<br/>
+            <span class="upload-zone-hint">or click to browse</span>
+          </div>
+          <input type="file" id="file-input" accept=".py" hidden />
+        </div>
+        <div class="upload-filename" id="upload-filename" style="display:none">
+          <span class="upload-filename-icon">📄</span>
+          <span id="upload-filename-text"></span>
+          <button class="upload-clear-btn" id="upload-clear-btn" title="Clear">✕</button>
+        </div>
+
+        <!-- Analyze button -->
+        <button class="analyze-btn" id="analyze-btn" disabled>
+          <span class="analyze-btn-icon">⚡</span>
+          Analyze & Optimize
+        </button>
+      </section>
+
+      <!-- Graph Source -->
+      <section class="panel" id="graph-source-panel" style="display:none">
         <h2 class="panel-title">Graph Source</h2>
 
-        <button id="btn-original"  class="btn btn-active"   onclick="loadGraph('original')">
+        <button id="btn-original"  class="btn btn-active" onclick="loadGraph('original')">
           <span class="btn-icon">◈</span>
           Original Graph
-          <span class="btn-tag">71 nodes</span>
+          <span class="btn-tag" id="tag-original">— nodes</span>
         </button>
         <button id="btn-optimized" class="btn" onclick="loadGraph('optimized')">
           <span class="btn-icon" style="color:#00ffc8">◈</span>
           Optimized Graph
-          <span class="btn-tag fused-tag">53 nodes</span>
+          <span class="btn-tag fused-tag" id="tag-optimized">— nodes</span>
         </button>
+
+        <div class="download-section">
+          <button class="download-btn" id="download-optimized-btn" onclick="downloadOptimizedGraph()">
+            <span class="download-btn-icon">⬇</span>
+            Download Optimized Model
+          </button>
+          <p class="download-hint">Kahn-sorted DAG with fused operators — ready for faster inference</p>
+        </div>
       </section>
 
       <!-- Metrics -->
-      <section class="panel">
+      <section class="panel" id="metrics-panel" style="display:none">
         <h2 class="panel-title">Graph Metrics</h2>
         <div class="metric-grid">
           <div class="metric-card">
@@ -74,8 +123,14 @@
         </div>
       </section>
 
+      <!-- Pass pipeline results (populated by JS) -->
+      <section class="panel" id="pipeline-panel" style="display:none">
+        <h2 class="panel-title">Pass Pipeline</h2>
+        <div id="pipeline-body"></div>
+      </section>
+
       <!-- Optimization significance -->
-      <section class="panel">
+      <section class="panel" id="impact-panel" style="display:none">
         <h2 class="panel-title">Optimization Impact</h2>
         <div class="sig-grid">
           <div id="sig-nodes" class="sig-item" data-name="Node Reduction"></div>
@@ -110,11 +165,35 @@
     <!-- Graph canvas -->
     <main class="canvas-wrap">
       <div id="graph-canvas"></div>
+
+      <!-- Welcome state (shown before first analysis) -->
+      <div class="canvas-welcome" id="canvas-welcome">
+        <div class="welcome-icon">⬡</div>
+        <h2 class="welcome-title">Select a Model to Begin</h2>
+        <p class="welcome-sub">Choose a built-in architecture from the sidebar<br/>or upload your own <code>.py</code> model file</p>
+      </div>
+
+      <!-- Loading overlay with status steps -->
       <div class="canvas-overlay" id="loading-overlay">
         <div class="spinner"></div>
-        <p>Loading graph…</p>
+        <p id="loading-message">Loading graph…</p>
+        <div class="status-steps" id="status-steps">
+          <div class="status-step" id="step-upload">
+            <span class="step-icon">📦</span> Uploading model…
+          </div>
+          <div class="status-step" id="step-trace">
+            <span class="step-icon">🔍</span> Tracing computation graph with torch.fx…
+          </div>
+          <div class="status-step" id="step-optimize">
+            <span class="step-icon">⚡</span> Running optimization pipeline…
+          </div>
+          <div class="status-step" id="step-metrics">
+            <span class="step-icon">📊</span> Calculating metrics…
+          </div>
+        </div>
       </div>
-      <div class="canvas-hint" id="canvas-hint">
+
+      <div class="canvas-hint" id="canvas-hint" style="display:none">
         Click a node to inspect its metadata
       </div>
     </main>
@@ -129,7 +208,7 @@
     <span class="footer-sep">|</span>
     <span class="footer-item">Topo-sort: <b>Kahn's BFS</b></span>
     <span class="footer-sep">|</span>
-    <span class="footer-item">Model: <b>ResNet-18</b></span>
+    <span class="footer-item">Model: <b id="footer-model-name">—</b></span>
   </footer>
 
   <script src="app.js"></script>
