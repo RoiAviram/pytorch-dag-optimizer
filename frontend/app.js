@@ -31,6 +31,7 @@ let edgesDS      = null;
 let activeKey    = null;     // 'original' | 'optimized'
 let selectedFile = null;     // File object from drag-and-drop or browse
 let analysisData = null;     // Full API response (both graphs + metrics)
+let downloadUrls = null;     // { pt_url, json_url } from last analysis
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
@@ -464,6 +465,13 @@ async function analyzeModel() {
 
     // ── Store analysis data ─────────────────────────────────────────────
     analysisData = data;
+    downloadUrls = data.downloads || {};
+
+    // ── Wire up download buttons ─────────────────────────────────────────
+    const ptBtn = el('download-pt-btn');
+    if (ptBtn) {
+      ptBtn.disabled = !downloadUrls.pt_url;
+    }
 
     // ── Show results panels ─────────────────────────────────────────────
     el('graph-source-panel').style.display = 'block';
@@ -624,37 +632,46 @@ function clearFile() {
   el('upload-filename').style.display = 'none';
   updateAnalyzeButton();
 }
-// ── Download optimized model ───────────────────────────────────────────────
+// ── Download optimized model (server JSON or in-memory fallback) ──────────
 
 function downloadOptimizedGraph() {
-  if (!analysisData || !analysisData.optimized_graph) {
-    showError('No optimized graph available — run an analysis first.');
+  if (!analysisData) {
+    showError('No analysis available — run an analysis first.');
     return;
   }
 
-  // Build a comprehensive export payload
+  // Prefer the server-side JSON (richer, includes memory analysis)
+  if (downloadUrls && downloadUrls.json_url) {
+    const a = document.createElement('a');
+    a.href     = downloadUrls.json_url;
+    a.download = downloadUrls.json_filename || 'optimized_dag.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+
+  // Fallback: build from in-memory data
+  if (!analysisData.optimized_graph) {
+    showError('No optimized graph available.');
+    return;
+  }
   const exportData = {
     _export_info: {
       tool:        'PyTorch DAG Optimizer',
       exported_at: new Date().toISOString(),
-      description: 'Optimized computation graph — topologically sorted via Kahn\'s BFS with fused/folded operators.',
+      description: 'Optimized computation graph — Kahn BFS topo-sort, fused/folded operators.',
     },
     model_name:       analysisData.model_name,
     optimized_graph:  analysisData.optimized_graph,
     metrics:          analysisData.metrics,
     memory_analysis:  analysisData.memory_analysis,
   };
-
   const json = JSON.stringify(exportData, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
-
-  // Build filename from model name
   const safeName = (analysisData.model_name || 'model')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '');
-
+    .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
   const a = document.createElement('a');
   a.href     = url;
   a.download = `${safeName}_optimized_dag.json`;
@@ -662,6 +679,21 @@ function downloadOptimizedGraph() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// ── Download TorchScript .pt model ─────────────────────────────────────────
+
+function downloadPtModel() {
+  if (!downloadUrls || !downloadUrls.pt_url) {
+    showError('TorchScript model not available — run an analysis first.');
+    return;
+  }
+  const a = document.createElement('a');
+  a.href     = downloadUrls.pt_url;
+  a.download = downloadUrls.pt_filename || 'optimized_model.pt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────

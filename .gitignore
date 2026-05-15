@@ -3,5 +3,12 @@ __pycache__/
 *.pyo
 .DS_Store
 uploads/
+downloads/
 *.pt
 *.pth
+.env
+.venv/
+venv/
+*.egg-info/
+dist/
+build/

@@ -55,7 +55,9 @@
           <div class="upload-zone-icon" id="upload-zone-icon">📂</div>
           <div class="upload-zone-text" id="upload-zone-text">
             Drag & drop a <code>.py</code> model file<br/>
-            <span class="upload-zone-hint">or click to browse</span>
+            <span class="upload-zone-hint">or click to browse</span><br/>
+            <a class="upload-sample-link" href="/sample_model.py" download
+               onclick="event.stopPropagation()">⬇ sample_model.py</a>
           </div>
           <input type="file" id="file-input" accept=".py" hidden />
         </div>
@@ -88,11 +90,29 @@
         </button>
 
         <div class="download-section">
-          <button class="download-btn" id="download-optimized-btn" onclick="downloadOptimizedGraph()">
-            <span class="download-btn-icon">⬇</span>
-            Download Optimized Model
+          <!-- TorchScript .pt download (actually faster model) -->
+          <button class="download-btn download-btn-pt" id="download-pt-btn"
+                  onclick="downloadPtModel()" disabled
+                  title="TorchScript compiled model — Conv-BN weights merged, no Python overhead. Loads with torch.jit.load().">
+            <span class="download-btn-icon">⚡</span>
+            Download Optimized .pt
+            <span class="download-btn-badge">FASTER</span>
           </button>
-          <p class="download-hint">Kahn-sorted DAG with fused operators — ready for faster inference</p>
+          <p class="download-hint">
+            TorchScript model — Conv-BN folding applied, no Python GIL.<br/>
+            Load with: <code>m = torch.jit.load('optimized.pt')</code>
+          </p>
+
+          <!-- DAG JSON download (graph description / research) -->
+          <button class="download-btn download-btn-json" id="download-json-btn"
+                  onclick="downloadOptimizedGraph()"
+                  title="Optimized computation graph as JSON — for visualization, C++ LibTorch, or research.">
+            <span class="download-btn-icon">📊</span>
+            Download DAG JSON
+          </button>
+          <p class="download-hint" style="margin-top:2px">
+            Optimized graph structure — for visualization &amp; C++ runtime
+          </p>
         </div>
       </section>
 
