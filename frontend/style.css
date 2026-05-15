@@ -57,7 +57,7 @@ body {
 .header-title {
   font-size: 15px; font-weight: 700; letter-spacing: .4px;
   background: linear-gradient(90deg, #c7d2fe, #818cf8);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .header-sub  { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
 .badge {

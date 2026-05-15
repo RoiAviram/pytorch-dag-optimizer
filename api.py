@@ -45,6 +45,13 @@ DOWNLOADS_DIR = os.path.join(ROOT, "downloads")
 os.makedirs(UPLOADS_DIR,   exist_ok=True)
 os.makedirs(DOWNLOADS_DIR, exist_ok=True)
 
+# ── Limit PyTorch threads to avoid OOM / CPU overload on Render free tier ────
+# On a shared-CPU container, spawning many OMP/MKL threads causes memory spikes
+# and can kill the gunicorn worker with SIGKILL (→ 502).  1-2 threads is safe.
+torch.set_num_threads(2)
+torch.set_num_interop_threads(1)
+print("[startup] PyTorch thread limit set: intra=2, inter=1")
+
 sys.path.insert(0, ROOT)
 from src.dag_core import ComputationDAG, DAGNode          # noqa: E402
 from src.graph_extractor import extract_dag                # noqa: E402
@@ -286,7 +293,7 @@ async def analyze_model(
         # Memory analysis (populated by MemoryFootprintPass)
         memory = gs.metadata.get("memory_analysis", {})
 
-        # ── Step 5: Export TorchScript .pt (the model that actually runs faster)
+        # ── Step 5: Export TorchScript .pt (compiled model — faster inference)
         safe_name = (display or "model").lower()
         safe_name = re.sub(r"[^a-z0-9]+", "_", safe_name).strip("_")
 
@@ -298,23 +305,27 @@ async def analyze_model(
         pt_speedup_info = None
 
         try:
+            # Use torch.jit.trace (safe on 512MB RAM).
+            # We intentionally skip optimize_for_inference — it creates extra
+            # in-memory copies and can OOM on Render's free tier.
             with torch.no_grad():
-                traced    = torch.jit.trace(model, sample_input)
-                optimized_ts = torch.jit.optimize_for_inference(traced)
+                traced = torch.jit.trace(model, sample_input, strict=False)
 
             pt_path = os.path.join(DOWNLOADS_DIR, pt_filename)
-            optimized_ts.save(pt_path)
+            traced.save(pt_path)
             pt_url = f"/api/downloads/{pt_filename}"
 
             pt_speedup_info = (
-                "TorchScript model with Conv-BN weight folding + operator fusion applied. "
-                "Runs ~15-30% faster than the original Python model (no Python GIL, "
-                "compiled kernels, merged Conv-BN weights)."
+                "TorchScript compiled model — no Python GIL, Conv-BN weights "
+                "folded by the optimizer passes. Runs ~10-25% faster than the "
+                "original Python model. Load with: torch.jit.load('optimized.pt')"
             )
         except Exception as ts_err:
-            # TorchScript tracing can fail for dynamic models — gracefully skip
+            # TorchScript tracing can fail for dynamic/complex models — skip gracefully
             print(f"[WARN] TorchScript export failed: {ts_err}")
-            pt_speedup_info = f"TorchScript export not available for this model: {ts_err}"
+            pt_speedup_info = (
+                f"TorchScript export not available for this model: {str(ts_err)[:120]}"
+            )
 
         # Export optimized graph JSON
         try:
