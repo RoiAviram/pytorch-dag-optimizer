@@ -85,12 +85,15 @@ BUILTIN_MODELS: dict[str, dict[str, Any]] = {
         "input_shape":  [1, 3, 224, 224],
         "description":  "50-layer residual network (bottleneck blocks), 25.6 M params",
     },
-    "vgg16": {
-        "display_name": "VGG-16",
-        "factory":      lambda: tv_models.vgg16(weights=None),
+    # VGG-16 removed — 138 M params × 4 bytes = 552 MB, exceeds Render free-tier RAM.
+    # EfficientNet-B0 is more modern and only 5.3 M params.
+    "efficientnet_b0": {
+        "display_name": "EfficientNet-B0",
+        "factory":      lambda: tv_models.efficientnet_b0(weights=None),
         "input_shape":  [1, 3, 224, 224],
-        "description":  "16-layer VGG, 138 M params",
+        "description":  "Compound-scaled efficient architecture, 5.3 M params",
     },
+
     "mobilenet_v2": {
         "display_name": "MobileNet V2",
         "factory":      lambda: tv_models.mobilenet_v2(weights=None),
@@ -294,6 +297,7 @@ async def analyze_model(
         memory = gs.metadata.get("memory_analysis", {})
 
         # ── Step 5: Export TorchScript .pt (compiled model — faster inference)
+        import gc
         safe_name = (display or "model").lower()
         safe_name = re.sub(r"[^a-z0-9]+", "_", safe_name).strip("_")
 
@@ -304,28 +308,45 @@ async def analyze_model(
         json_url = None
         pt_speedup_info = None
 
-        try:
-            # Use torch.jit.trace (safe on 512MB RAM).
-            # We intentionally skip optimize_for_inference — it creates extra
-            # in-memory copies and can OOM on Render's free tier.
-            with torch.no_grad():
-                traced = torch.jit.trace(model, sample_input, strict=False)
+        # Count params to decide if TorchScript export is safe on 512 MB RAM.
+        # Each param = 4 bytes; tracing duplicates the weights in memory.
+        # We allow up to ~30 M params (≈ 240 MB overhead) to stay safe.
+        param_count = sum(p.numel() for p in model.parameters())
+        pt_budget_ok = param_count <= 30_000_000
 
-            pt_path = os.path.join(DOWNLOADS_DIR, pt_filename)
-            traced.save(pt_path)
-            pt_url = f"/api/downloads/{pt_filename}"
+        if not pt_budget_ok:
+            pt_speedup_info = (
+                f"TorchScript export skipped — model has {param_count/1e6:.1f} M params "
+                f"which would exceed the server's 512 MB RAM limit. "
+                f"Run locally with: torch.jit.trace(model, sample_input).save('optimized.pt')"
+            )
+            print(f"[INFO] TorchScript export skipped: {param_count/1e6:.1f} M params > 30 M limit")
+        else:
+            try:
+                # torch.jit.trace is safe; we skip optimize_for_inference (OOM risk).
+                with torch.no_grad():
+                    traced = torch.jit.trace(model, sample_input, strict=False)
 
-            pt_speedup_info = (
-                "TorchScript compiled model — no Python GIL, Conv-BN weights "
-                "folded by the optimizer passes. Runs ~10-25% faster than the "
-                "original Python model. Load with: torch.jit.load('optimized.pt')"
-            )
-        except Exception as ts_err:
-            # TorchScript tracing can fail for dynamic/complex models — skip gracefully
-            print(f"[WARN] TorchScript export failed: {ts_err}")
-            pt_speedup_info = (
-                f"TorchScript export not available for this model: {str(ts_err)[:120]}"
-            )
+                pt_path = os.path.join(DOWNLOADS_DIR, pt_filename)
+                traced.save(pt_path)
+                del traced  # free immediately
+                gc.collect()
+                pt_url = f"/api/downloads/{pt_filename}"
+
+                pt_speedup_info = (
+                    "TorchScript compiled model — no Python GIL, Conv-BN weights "
+                    "folded by the optimizer passes. Runs ~10-25% faster than the "
+                    "original Python model. Load with: torch.jit.load('optimized.pt')"
+                )
+            except Exception as ts_err:
+                print(f"[WARN] TorchScript export failed: {ts_err}")
+                pt_speedup_info = (
+                    f"TorchScript export not available for this model: {str(ts_err)[:120]}"
+                )
+
+        # Free the model from RAM before building the (potentially large) JSON response
+        del model, sample_input
+        gc.collect()
 
         # Export optimized graph JSON
         try:
