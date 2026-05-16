@@ -20,9 +20,7 @@ Upload any PyTorch model (`.py` file) or select a built-in architecture. The app
    - Conv-BN Folding — mathematically merges Conv weights into BN
    - Memory Footprint Analysis — annotates peak activation memory
 4. **Visualizes** both the original and optimized graphs interactively
-5. **Exports** two downloadable artifacts:
-   - ⚡ **TorchScript `.pt`** — a compiled model that actually runs ~15-30% faster
-   - 📊 **Optimized DAG JSON** — graph structure for research or C++ LibTorch
+5. **Exports** an **Optimized DAG JSON** — the graph structure for visualization, research, or C++ LibTorch integration
 
 ---
 
@@ -35,7 +33,7 @@ Upload any PyTorch model (`.py` file) or select a built-in architecture. The app
 | **HBM Read/Write Elimination** | Fused ops skip intermediate memory writes → lower memory bandwidth |
 | **Kahn's BFS Topo-Sort** | Optimal node ordering for cache-efficient forward passes |
 
-The TorchScript `.pt` export uses `torch.jit.optimize_for_inference()` which applies real CUDA/CPU kernel optimizations — not just a description of what *could* be optimized.
+The optimization passes (Conv-BN folding, operator fusion) apply real mathematical transformations to the graph. When running locally, you can also export a TorchScript `.pt` model for production inference.
 
 ---
 
@@ -52,11 +50,15 @@ PyTorch_DAG/
 │   ├── index.html           # Single-page app
 │   ├── app.js               # vis-network graph renderer + API client
 │   └── style.css            # Dark theme design system
-├── api.py                   # FastAPI server (main entry point)
+├── precomputed/             # Pre-generated analysis results (committed to repo)
+├── downloads/               # Pre-generated JSON exports for download
+├── api.py                   # FastAPI server (serves pre-computed results)
+├── precompute.py            # Offline analysis generator (run locally)
 ├── sample_model.py          # Example custom model for upload
 ├── requirements.txt         # CPU-only PyTorch + FastAPI + gunicorn
 └── Procfile                 # Render.com deployment config
 ```
+
 
 ---
 
