@@ -4,19 +4,17 @@ api.py
 FastAPI backend for the PyTorch DAG Optimizer.
 
 Architecture (memory-safe for Render free tier, 512 MB RAM):
-  - ALL built-in models are analyzed ONCE at server startup (sequentially).
-    Each model is loaded, analyzed, traced, then immediately deleted + gc'd.
-    After startup, the server holds only ~200 MB (PyTorch runtime + cached dicts).
-  - Requests for built-in models return the pre-cached JSON instantly.
-    Zero model loading at request time → zero memory spike → no more 502s.
-  - Custom .py uploads still do live analysis (with memory guards).
+  - Built-in model analyses are PRE-COMPUTED offline (via precompute.py).
+    At startup the server loads tiny JSON files (~200 KB total) from precomputed/.
+    ZERO model loading on Render → ZERO memory spike → no 502s.
+  - Custom .py uploads still run live analysis (with memory guards).
 
 Serves:
   GET  /                      → frontend/index.html
   GET  /output/*              → output/ JSON files (backwards compat)
-  GET  /api/models            → list of built-in torchvision models
-  POST /api/analyze           → returns cached result (built-in) or live analysis (.py)
-  GET  /api/downloads/{name}  → serve a previously exported file
+  GET  /api/models            → list of built-in models
+  POST /api/analyze           → pre-cached result (built-in) or live analysis (.py)
+  GET  /api/downloads/{name}  → serve exported files
 """
 
 from __future__ import annotations
@@ -29,7 +27,6 @@ import re
 import sys
 import time
 import traceback
-from contextlib import asynccontextmanager
 from typing import Any
 
 import torch
@@ -41,19 +38,19 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 # ── Path setup ────────────────────────────────────────────────────────────────
-ROOT          = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR  = os.path.join(ROOT, "frontend")
-OUTPUT_DIR    = os.path.join(ROOT, "output")
-UPLOADS_DIR   = os.path.join(ROOT, "uploads")
-DOWNLOADS_DIR = os.path.join(ROOT, "downloads")
+ROOT           = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR   = os.path.join(ROOT, "frontend")
+OUTPUT_DIR     = os.path.join(ROOT, "output")
+UPLOADS_DIR    = os.path.join(ROOT, "uploads")
+DOWNLOADS_DIR  = os.path.join(ROOT, "downloads")
+PRECOMP_DIR    = os.path.join(ROOT, "precomputed")
 
 os.makedirs(UPLOADS_DIR,   exist_ok=True)
 os.makedirs(DOWNLOADS_DIR, exist_ok=True)
 
-# ── Limit PyTorch threads on Render's shared CPU ─────────────────────────────
+# ── Limit PyTorch threads on Render's shared CPU ──────────────────────────────
 torch.set_num_threads(2)
 torch.set_num_interop_threads(1)
-print("[startup] PyTorch thread limit set: intra=2, inter=1")
 
 sys.path.insert(0, ROOT)
 from src.dag_core import ComputationDAG, DAGNode          # noqa: E402
@@ -67,275 +64,49 @@ from src.optimizer_passes import (                         # noqa: E402
     PassManager,
 )
 
-# ── Built-in model registry ───────────────────────────────────────────────────
+# ── Built-in model metadata (for /api/models listing) ────────────────────────
+# Only 3 models — chosen to fit comfortably within Render's 512 MB free tier.
 
 BUILTIN_MODELS: dict[str, dict[str, Any]] = {
     "resnet18": {
         "display_name": "ResNet-18",
-        "factory":      lambda: tv_models.resnet18(weights=None),
         "input_shape":  [1, 3, 224, 224],
         "description":  "18-layer residual network, 11.7 M params",
     },
-    "resnet34": {
-        "display_name": "ResNet-34",
-        "factory":      lambda: tv_models.resnet34(weights=None),
-        "input_shape":  [1, 3, 224, 224],
-        "description":  "34-layer residual network, 21.8 M params",
-    },
-    "resnet50": {
-        "display_name": "ResNet-50",
-        "factory":      lambda: tv_models.resnet50(weights=None),
-        "input_shape":  [1, 3, 224, 224],
-        "description":  "50-layer residual network (bottleneck blocks), 25.6 M params",
-    },
-    "efficientnet_b0": {
-        "display_name": "EfficientNet-B0",
-        "factory":      lambda: tv_models.efficientnet_b0(weights=None),
-        "input_shape":  [1, 3, 224, 224],
-        "description":  "Compound-scaled efficient architecture, 5.3 M params",
-    },
     "mobilenet_v2": {
         "display_name": "MobileNet V2",
-        "factory":      lambda: tv_models.mobilenet_v2(weights=None),
         "input_shape":  [1, 3, 224, 224],
         "description":  "Inverted-residual mobile architecture, 3.4 M params",
     },
     "squeezenet1_0": {
         "display_name": "SqueezeNet 1.0",
-        "factory":      lambda: tv_models.squeezenet1_0(weights=None),
         "input_shape":  [1, 3, 224, 224],
         "description":  "Compact fire-module architecture, 1.2 M params",
     },
 }
 
-# ── Bandwidth math constants ──────────────────────────────────────────────────
-BYTES_PER_INTERMEDIATE       = 64 * 112 * 112 * 4   # ~3.2 MB (stem feature-map)
-THROUGHPUT_GAIN_PER_CHAIN_PCT = 1.8                  # empirical, conservative
+# ── Load pre-computed results from disk (~200 KB total) ───────────────────────
+# These were generated by `python precompute.py` on a machine with enough RAM.
+# This is the key to avoiding OOM: zero model loading on Render.
 
-# ── In-memory cache: filled at startup, read at request time ─────────────────
 PRECOMPUTED: dict[str, dict] = {}
 
-
-# ═════════════════════════════════════════════════════════════════════════════
-# Core analysis helper — used at startup for built-ins & live for uploads
-# ═════════════════════════════════════════════════════════════════════════════
-
-def _run_analysis(
-    model:       nn.Module,
-    input_shape: list[int],
-    display:     str,
-    safe_name:   str,
-) -> dict[str, Any]:
-    """
-    Full analysis pipeline for one model.
-    IMPORTANT: deletes `model` and calls gc.collect() before returning.
-    The caller must NOT use `model` after this function returns.
-    """
-    model.eval()
-
-    # ── ShapeProp input: max 32×32 spatial (49× less activation RAM vs 224×224) ──
-    sp_shape = list(input_shape)
-    if len(sp_shape) >= 4:
-        sp_shape[-2] = min(sp_shape[-2], 32)
-        sp_shape[-1] = min(sp_shape[-1], 32)
-    sp_input = torch.zeros(*sp_shape)
-
-    # ── Step 1: Extract original DAG ─────────────────────────────────────────
-    with torch.no_grad():
-        dag = extract_dag(model, sp_input, graph_name=display)
-    original_raw = dag.to_json()
-    del dag, sp_input
-    gc.collect()
-
-    original_n = original_raw["metadata"]["num_nodes"]
-    original_e = original_raw["metadata"]["num_edges"]
-
-    # ── Step 2: Optimisation pipeline ────────────────────────────────────────
-    pipeline = PassManager([
-        ConvBNReLUFusionPass(),
-        DeadNodeEliminationPass(),
-        ConvBNFoldingPass(),
-        MemoryFootprintPass(),
-    ])
-    gs      = GraphState(original_raw)
-    results = pipeline.run(gs)
-
-    optimized_raw = gs.to_json("Optimized")
-    final_n = optimized_raw["metadata"]["num_nodes"]
-    final_e = optimized_raw["metadata"]["num_edges"]
-
-    # ── Step 3: Metrics ───────────────────────────────────────────────────────
-    fused_count  = sum(1 for n in optimized_raw["nodes"] if n.get("op_type") == "fused_op")
-    folded_count = sum(1 for n in optimized_raw["nodes"] if n.get("op_type") == "folded_op")
-
-    rw_eliminated   = fused_count * 2
-    bw_freed_bytes  = fused_count * 2 * BYTES_PER_INTERMEDIATE
-    bw_cut_pct      = (rw_eliminated / max(original_e * 2, 1)) * 100
-    throughput_gain = fused_count * THROUGHPUT_GAIN_PER_CHAIN_PCT
-    node_red_pct    = ((original_n - final_n) / max(original_n, 1)) * 100
-    edge_red_pct    = ((original_e - final_e) / max(original_e, 1)) * 100
-
-    if bw_freed_bytes >= 1e9:
-        bw_human = f"~{bw_freed_bytes / 1e9:.1f} GB"
-    elif bw_freed_bytes >= 1e6:
-        bw_human = f"~{bw_freed_bytes / 1e6:.1f} MB"
-    elif bw_freed_bytes >= 1e3:
-        bw_human = f"~{bw_freed_bytes / 1e3:.1f} KB"
+print("[startup] Loading pre-computed analysis results …")
+for model_id in BUILTIN_MODELS:
+    json_path = os.path.join(PRECOMP_DIR, f"{model_id}.json")
+    if os.path.isfile(json_path):
+        with open(json_path, "r", encoding="utf-8") as fh:
+            PRECOMPUTED[model_id] = json.load(fh)
+        print(f"  ✓ {model_id} cached ({os.path.getsize(json_path) / 1024:.0f} KB)")
     else:
-        bw_human = f"{bw_freed_bytes} B"
+        print(f"  ✗ {model_id} — precomputed/{model_id}.json not found")
 
-    pass_results = []
-    for r in results:
-        pass_results.append({
-            "pass_name":     r.pass_name,
-            "nodes_before":  r.nodes_before,
-            "nodes_after":   r.nodes_after,
-            "edges_before":  r.edges_before,
-            "edges_after":   r.edges_after,
-            "nodes_removed": r.nodes_removed,
-            "edges_removed": r.edges_removed,
-            "notes":         r.notes[:10],
-        })
+print(f"[startup] {len(PRECOMPUTED)}/{len(BUILTIN_MODELS)} models ready "
+      f"(zero model loading, zero OOM risk)\n")
 
-    memory = gs.metadata.get("memory_analysis", {})
-
-    # ── Step 4: TorchScript .pt export (only for models ≤ 15 M params) ───────
-    # 15 M params × 4 bytes × 2 (model + trace copy) = 120 MB overhead — safe.
-    pt_url          = None
-    pt_speedup_info = None
-    json_url        = None
-    pt_filename     = f"optimized_{safe_name}.pt"
-    json_filename   = f"optimized_graph_{safe_name}.json"
-
-    param_count  = sum(p.numel() for p in model.parameters())
-    pt_budget_ok = param_count <= 15_000_000
-
-    if pt_budget_ok:
-        try:
-            trace_input = torch.randn(*input_shape)
-            with torch.no_grad():
-                traced = torch.jit.trace(model, trace_input, strict=False)
-            pt_path = os.path.join(DOWNLOADS_DIR, pt_filename)
-            traced.save(pt_path)
-            del traced, trace_input
-            gc.collect()
-            pt_url = f"/api/downloads/{pt_filename}"
-            pt_speedup_info = (
-                "TorchScript compiled model — no Python GIL overhead, Conv-BN weights "
-                "folded by the optimizer passes. Runs ~10-25% faster than the original "
-                "Python model. Load with: torch.jit.load('optimized.pt')"
-            )
-        except Exception as ts_err:
-            print(f"[WARN] TorchScript export failed for {safe_name}: {ts_err}")
-            pt_speedup_info = f"TorchScript export failed: {str(ts_err)[:100]}"
-    else:
-        pt_speedup_info = (
-            f"TorchScript export skipped — model has {param_count/1e6:.1f} M params "
-            f"({param_count/1e6:.1f} M × 4 bytes × 2 copies ≈ "
-            f"{param_count * 8 / 1e6:.0f} MB overhead, exceeds server RAM). "
-            f"Run locally: torch.jit.trace(model, x).save('optimized.pt')"
-        )
-
-    # Free model BEFORE building the JSON (large models keep weights in memory)
-    del model
-    gc.collect()
-
-    # ── Step 5: Write optimized JSON to disk ──────────────────────────────────
-    try:
-        json_path = os.path.join(DOWNLOADS_DIR, json_filename)
-        with open(json_path, "w", encoding="utf-8") as fh:
-            json.dump({
-                "_export_info": {
-                    "tool":        "PyTorch DAG Optimizer",
-                    "exported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                    "description": (
-                        "Optimized computation graph — topologically sorted via Kahn's BFS "
-                        "with fused/folded operators. Use with LibTorch C++ runtime or "
-                        "for graph visualization."
-                    ),
-                },
-                "model_name":      display,
-                "optimized_graph": optimized_raw,
-                "metrics": {
-                    "original_nodes":            original_n,
-                    "original_edges":            original_e,
-                    "optimized_nodes":           final_n,
-                    "optimized_edges":           final_e,
-                    "node_reduction_pct":        round(node_red_pct, 1),
-                    "fused_ops":                 fused_count,
-                    "folded_ops":                folded_count,
-                    "hbm_bandwidth_freed_human": bw_human,
-                },
-                "memory_analysis": memory,
-            }, fh, indent=2)
-        json_url = f"/api/downloads/{json_filename}"
-    except Exception as json_err:
-        print(f"[WARN] JSON export failed for {safe_name}: {json_err}")
-
-    # ── Build response dict ───────────────────────────────────────────────────
-    return {
-        "status":     "success",
-        "model_name": display,
-        "original_graph":  original_raw,
-        "optimized_graph": optimized_raw,
-        "metrics": {
-            "original_nodes":            original_n,
-            "original_edges":            original_e,
-            "optimized_nodes":           final_n,
-            "optimized_edges":           final_e,
-            "node_reduction_pct":        round(node_red_pct, 1),
-            "edge_reduction_pct":        round(edge_red_pct, 1),
-            "fused_ops":                 fused_count,
-            "folded_ops":                folded_count,
-            "hbm_rw_eliminated":         rw_eliminated,
-            "hbm_bandwidth_freed_bytes": bw_freed_bytes,
-            "hbm_bandwidth_freed_human": bw_human,
-            "hbm_traffic_cut_pct":       round(bw_cut_pct, 1),
-            "est_throughput_gain_pct":   round(throughput_gain, 1),
-            "pass_results":              pass_results,
-        },
-        "memory_analysis": memory,
-        "downloads": {
-            "pt_url":          pt_url,
-            "pt_filename":     pt_filename if pt_url else None,
-            "pt_speedup_info": pt_speedup_info,
-            "json_url":        json_url,
-            "json_filename":   json_filename if json_url else None,
-        },
-    }
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# Startup: pre-compute all built-in models (sequentially, memory-safe)
-# ═════════════════════════════════════════════════════════════════════════════
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    FastAPI lifespan handler.
-    At startup: analyze all built-in models one by one. Each is loaded, analyzed,
-    and DELETED before the next one starts. After all 6 models, peak memory use
-    is ~200 MB (PyTorch runtime + cached JSON dicts), leaving 300 MB headroom.
-    At request time: no model loading → no memory spike → no 502 errors.
-    """
-    print("\n[startup] ═══ Pre-computing built-in models ═══")
-    for model_id, info in BUILTIN_MODELS.items():
-        print(f"[startup] Analyzing {model_id} ({info['description']}) …")
-        t0 = time.time()
-        try:
-            model     = info["factory"]()
-            safe_name = re.sub(r"[^a-z0-9]+", "_", model_id.lower()).strip("_")
-            result    = _run_analysis(model, info["input_shape"], info["display_name"], safe_name)
-            PRECOMPUTED[model_id] = result
-            elapsed = time.time() - t0
-            print(f"[startup] ✓ {model_id} ready ({elapsed:.1f}s)")
-        except Exception:
-            print(f"[startup] ✗ {model_id} FAILED:\n{traceback.format_exc()}")
-            gc.collect()
-
-    print(f"[startup] ═══ Done — {len(PRECOMPUTED)}/{len(BUILTIN_MODELS)} models cached ═══\n")
-    yield
-    # Shutdown — nothing to clean up
+# ── Bandwidth math constants ──────────────────────────────────────────────────
+BYTES_PER_INTERMEDIATE        = 64 * 112 * 112 * 4
+THROUGHPUT_GAIN_PER_CHAIN_PCT = 1.8
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -344,9 +115,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="PyTorch DAG Optimizer API",
-    version="3.0.0",
-    description="Memory-safe DAG optimisation service with startup pre-computation",
-    lifespan=lifespan,
+    version="3.1.0",
+    description="Memory-safe DAG optimisation with pre-computed model analysis",
 )
 
 app.add_middleware(
@@ -356,7 +126,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Static file serving ───────────────────────────────────────────────────────
+# ── Static file serving ──────────────────────────────────────────────────────
 app.mount("/output", StaticFiles(directory=OUTPUT_DIR), name="output")
 
 
@@ -364,7 +134,7 @@ app.mount("/output", StaticFiles(directory=OUTPUT_DIR), name="output")
 
 @app.get("/api/models")
 async def list_models():
-    """Return the list of built-in models. Marks which ones are already cached."""
+    """Return the list of built-in models available for analysis."""
     models = []
     for key, info in BUILTIN_MODELS.items():
         models.append({
@@ -372,7 +142,6 @@ async def list_models():
             "display_name": info["display_name"],
             "input_shape":  info["input_shape"],
             "description":  info["description"],
-            "cached":       key in PRECOMPUTED,
         })
     return {"models": models}
 
@@ -386,7 +155,7 @@ async def download_file(filename: str):
     if not os.path.isfile(path):
         return JSONResponse(
             status_code=404,
-            content={"status": "error", "detail": "File not found. Run an analysis first."},
+            content={"status": "error", "detail": "File not found."},
         )
 
     media_type = "application/json" if safe.endswith(".json") else "application/octet-stream"
@@ -401,27 +170,28 @@ async def analyze_model(
     """
     Analyze a model and return the optimized graph + metrics + download URLs.
 
-    For built-in models: returns the pre-cached result instantly (no model loading).
-    For custom .py uploads: runs live analysis (small models only, < 200 MB RAM).
+    Built-in models: returns pre-computed result instantly (no model loading).
+    Custom .py uploads: runs live analysis (small models only).
     """
     upload_path = None
     try:
-        # ── Built-in model: serve from cache ─────────────────────────────────
+        # ── Built-in model: serve from pre-computed cache ─────────────────
         if model_name and model_name in BUILTIN_MODELS:
             if model_name in PRECOMPUTED:
-                print(f"[analyze] Cache hit for '{model_name}' — returning instantly")
                 return JSONResponse(content=PRECOMPUTED[model_name])
             else:
-                # Startup failed for this model — try live analysis as fallback
-                print(f"[analyze] Cache miss for '{model_name}' — running live analysis")
-                info      = BUILTIN_MODELS[model_name]
-                model     = info["factory"]()
-                safe_name = re.sub(r"[^a-z0-9]+", "_", model_name.lower()).strip("_")
-                result    = _run_analysis(model, info["input_shape"], info["display_name"], safe_name)
-                PRECOMPUTED[model_name] = result  # cache for next time
-                return JSONResponse(content=result)
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "status": "error",
+                        "detail": (
+                            f"Analysis for {model_name} is not available. "
+                            f"Pre-computed data was not found on the server."
+                        ),
+                    },
+                )
 
-        # ── Custom .py upload: live analysis ──────────────────────────────────
+        # ── Custom .py upload: live analysis ──────────────────────────────
         elif file is not None:
             if not file.filename.endswith(".py"):
                 return JSONResponse(
@@ -435,9 +205,11 @@ async def analyze_model(
                     content={"status": "error", "detail": "File too large (max 1 MB)."},
                 )
 
-            model, display, input_shape, upload_path = _load_custom_model(content, file.filename)
+            model, display, input_shape, upload_path = _load_custom_model(
+                content, file.filename
+            )
             safe_name = re.sub(r"[^a-z0-9]+", "_", display.lower()).strip("_") or "custom"
-            result    = _run_analysis(model, input_shape, display, safe_name)
+            result    = _run_live_analysis(model, input_shape, display, safe_name)
             return JSONResponse(content=result)
 
         else:
@@ -463,16 +235,148 @@ async def analyze_model(
                 pass
 
 
-# ── Custom model loader ───────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# Live analysis (for custom uploads only — NOT used for built-in models)
+# ═════════════════════════════════════════════════════════════════════════════
+
+def _run_live_analysis(
+    model:       nn.Module,
+    input_shape: list[int],
+    display:     str,
+    safe_name:   str,
+) -> dict[str, Any]:
+    """Analyze a custom uploaded model. Deletes model before returning."""
+    model.eval()
+
+    # ShapeProp with tiny spatial dims to save memory
+    sp_shape = list(input_shape)
+    if len(sp_shape) >= 4:
+        sp_shape[-2] = min(sp_shape[-2], 32)
+        sp_shape[-1] = min(sp_shape[-1], 32)
+    sp_input = torch.zeros(*sp_shape)
+
+    with torch.no_grad():
+        dag = extract_dag(model, sp_input, graph_name=display)
+    original_raw = dag.to_json()
+    del dag, sp_input
+    gc.collect()
+
+    original_n = original_raw["metadata"]["num_nodes"]
+    original_e = original_raw["metadata"]["num_edges"]
+
+    # Optimisation pipeline
+    pipeline = PassManager([
+        ConvBNReLUFusionPass(),
+        DeadNodeEliminationPass(),
+        ConvBNFoldingPass(),
+        MemoryFootprintPass(),
+    ])
+    gs      = GraphState(original_raw)
+    results = pipeline.run(gs)
+
+    optimized_raw = gs.to_json("Optimized")
+    final_n = optimized_raw["metadata"]["num_nodes"]
+    final_e = optimized_raw["metadata"]["num_edges"]
+
+    fused_count  = sum(1 for n in optimized_raw["nodes"] if n.get("op_type") == "fused_op")
+    folded_count = sum(1 for n in optimized_raw["nodes"] if n.get("op_type") == "folded_op")
+
+    rw_eliminated   = fused_count * 2
+    bw_freed_bytes  = fused_count * 2 * BYTES_PER_INTERMEDIATE
+    bw_cut_pct      = (rw_eliminated / max(original_e * 2, 1)) * 100
+    throughput_gain = fused_count * THROUGHPUT_GAIN_PER_CHAIN_PCT
+    node_red_pct    = ((original_n - final_n) / max(original_n, 1)) * 100
+    edge_red_pct    = ((original_e - final_e) / max(original_e, 1)) * 100
+
+    if bw_freed_bytes >= 1e6:
+        bw_human = f"~{bw_freed_bytes / 1e6:.1f} MB"
+    elif bw_freed_bytes >= 1e3:
+        bw_human = f"~{bw_freed_bytes / 1e3:.1f} KB"
+    else:
+        bw_human = f"{bw_freed_bytes} B"
+
+    pass_results = []
+    for r in results:
+        pass_results.append({
+            "pass_name":     r.pass_name,
+            "nodes_before":  r.nodes_before,
+            "nodes_after":   r.nodes_after,
+            "edges_before":  r.edges_before,
+            "edges_after":   r.edges_after,
+            "nodes_removed": r.nodes_removed,
+            "edges_removed": r.edges_removed,
+            "notes":         r.notes[:10],
+        })
+
+    memory = gs.metadata.get("memory_analysis", {})
+
+    # Export JSON for download
+    json_filename = f"optimized_graph_{safe_name}.json"
+    json_url      = None
+    try:
+        json_path = os.path.join(DOWNLOADS_DIR, json_filename)
+        with open(json_path, "w", encoding="utf-8") as fh:
+            json.dump({
+                "_export_info": {
+                    "tool":        "PyTorch DAG Optimizer",
+                    "exported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "description": "Optimized computation graph — Kahn's BFS topo-sort.",
+                },
+                "model_name":      display,
+                "optimized_graph": optimized_raw,
+                "metrics":         {"fused_ops": fused_count, "folded_ops": folded_count},
+                "memory_analysis": memory,
+            }, fh, indent=2)
+        json_url = f"/api/downloads/{json_filename}"
+    except Exception as json_err:
+        print(f"[WARN] JSON export failed: {json_err}")
+
+    # Free model
+    del model
+    gc.collect()
+
+    return {
+        "status":     "success",
+        "model_name": display,
+        "original_graph":  original_raw,
+        "optimized_graph": optimized_raw,
+        "metrics": {
+            "original_nodes":            original_n,
+            "original_edges":            original_e,
+            "optimized_nodes":           final_n,
+            "optimized_edges":           final_e,
+            "node_reduction_pct":        round(node_red_pct, 1),
+            "edge_reduction_pct":        round(edge_red_pct, 1),
+            "fused_ops":                 fused_count,
+            "folded_ops":                folded_count,
+            "hbm_rw_eliminated":         rw_eliminated,
+            "hbm_bandwidth_freed_bytes": bw_freed_bytes,
+            "hbm_bandwidth_freed_human": bw_human,
+            "hbm_traffic_cut_pct":       round(bw_cut_pct, 1),
+            "est_throughput_gain_pct":   round(throughput_gain, 1),
+            "pass_results":              pass_results,
+        },
+        "memory_analysis": memory,
+        "downloads": {
+            "pt_url":          None,
+            "pt_filename":     None,
+            "pt_speedup_info": (
+                "TorchScript .pt export is available when running locally. "
+                "Use: torch.jit.trace(model, x).save('optimized.pt')"
+            ),
+            "json_url":        json_url,
+            "json_filename":   json_filename if json_url else None,
+        },
+    }
+
+
+# ── Custom model loader ──────────────────────────────────────────────────────
 
 def _load_custom_model(
     content:  bytes,
     filename: str,
 ) -> tuple[nn.Module, str, list[int], str]:
-    """
-    Dynamically load a user-uploaded .py model file.
-    The file must define get_model() -> nn.Module, and optionally MODEL_NAME, INPUT_SHAPE.
-    """
+    """Load a user-uploaded .py model file dynamically."""
     import importlib.util
 
     path = os.path.join(UPLOADS_DIR, filename)
@@ -520,7 +424,7 @@ def main() -> None:
 
     print()
     print("  ┌─────────────────────────────────────────────────────┐")
-    print("  │   PyTorch DAG Optimizer  v3.0  (startup cache)      │")
+    print("  │   PyTorch DAG Optimizer  v3.1  (pre-computed cache) │")
     print(f"  │   http://{host}:{port:<5}                              │")
     print("  └─────────────────────────────────────────────────────┘")
     print()

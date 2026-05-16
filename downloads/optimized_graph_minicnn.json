@@ -1,0 +1,257 @@
+{
+  "_export_info": {
+    "tool": "PyTorch DAG Optimizer",
+    "exported_at": "2026-05-15T15:25:46Z",
+    "description": "Optimized computation graph \u2014 topologically sorted via Kahn's BFS with fused/folded operators. Use with LibTorch C++ runtime or for graph visualization."
+  },
+  "model_name": "MiniCNN",
+  "optimized_graph": {
+    "metadata": {
+      "graph_name": "MiniCNN (Optimized)",
+      "num_nodes": 8,
+      "num_edges": 7,
+      "created_at": "2026-05-15T15:25:45Z",
+      "memory_analysis": {
+        "peak_live_mb": 0.01,
+        "peak_live_nodes": [
+          "x"
+        ],
+        "top_consumers": [
+          {
+            "node_id": "x",
+            "memory_mb": 0.01
+          },
+          {
+            "node_id": "pool",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "flatten",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "output",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "fc",
+            "memory_mb": 0.0
+          }
+        ]
+      },
+      "optimized_at": "2026-05-15T15:25:45Z"
+    },
+    "nodes": [
+      {
+        "node_id": "x",
+        "op_type": "placeholder",
+        "name": "x",
+        "output_shape": [
+          1,
+          3,
+          32,
+          32
+        ],
+        "kwargs": {
+          "memory_mb": 0.0123
+        }
+      },
+      {
+        "node_id": "pool",
+        "op_type": "call_module",
+        "name": "pool",
+        "output_shape": [
+          1,
+          64,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "AdaptiveAvgPool2d",
+          "memory_mb": 0.0003
+        }
+      },
+      {
+        "node_id": "flatten",
+        "op_type": "call_method",
+        "name": "flatten",
+        "output_shape": [
+          1,
+          64
+        ],
+        "kwargs": {
+          "memory_mb": 0.0003
+        }
+      },
+      {
+        "node_id": "fc",
+        "op_type": "call_module",
+        "name": "fc",
+        "output_shape": [
+          1,
+          10
+        ],
+        "kwargs": {
+          "module_class": "Linear",
+          "memory_mb": 0.0
+        }
+      },
+      {
+        "node_id": "output",
+        "op_type": "output",
+        "name": "output",
+        "output_shape": [
+          1,
+          10
+        ],
+        "kwargs": {
+          "memory_mb": 0.0
+        }
+      },
+      {
+        "node_id": "fused_cbr_conv1",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[conv1+bn1+relu1]",
+        "output_shape": [
+          1,
+          32,
+          32,
+          32
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "conv1",
+            "bn1",
+            "relu1"
+          ],
+          "conv_shape": [
+            1,
+            32,
+            32,
+            32
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_conv2",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[conv2+bn2+relu2]",
+        "output_shape": [
+          1,
+          64,
+          32,
+          32
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "conv2",
+            "bn2",
+            "relu2"
+          ],
+          "conv_shape": [
+            1,
+            64,
+            32,
+            32
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "folded_cb_conv3",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[conv3+bn3]",
+        "output_shape": [
+          1,
+          64,
+          32,
+          32
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "conv3",
+            "bn3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      }
+    ],
+    "edges": [
+      {
+        "src": "x",
+        "dst": "fused_cbr_conv1"
+      },
+      {
+        "src": "pool",
+        "dst": "flatten"
+      },
+      {
+        "src": "flatten",
+        "dst": "fc"
+      },
+      {
+        "src": "fc",
+        "dst": "output"
+      },
+      {
+        "src": "fused_cbr_conv1",
+        "dst": "fused_cbr_conv2"
+      },
+      {
+        "src": "fused_cbr_conv2",
+        "dst": "folded_cb_conv3"
+      },
+      {
+        "src": "folded_cb_conv3",
+        "dst": "pool"
+      }
+    ]
+  },
+  "metrics": {
+    "original_nodes": 13,
+    "original_edges": 12,
+    "optimized_nodes": 8,
+    "optimized_edges": 7,
+    "node_reduction_pct": 38.5,
+    "edge_reduction_pct": 41.7,
+    "fused_ops": 2,
+    "folded_ops": 1,
+    "hbm_rw_eliminated": 4,
+    "hbm_bandwidth_freed_bytes": 12845056,
+    "hbm_bandwidth_freed_human": "~12.8 MB",
+    "hbm_traffic_cut_pct": 16.7,
+    "est_throughput_gain_pct": 3.6
+  },
+  "memory_analysis": {
+    "peak_live_mb": 0.01,
+    "peak_live_nodes": [
+      "x"
+    ],
+    "top_consumers": [
+      {
+        "node_id": "x",
+        "memory_mb": 0.01
+      },
+      {
+        "node_id": "pool",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "flatten",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "output",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "fc",
+        "memory_mb": 0.0
+      }
+    ]
+  }
+}

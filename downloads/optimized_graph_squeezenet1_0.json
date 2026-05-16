@@ -1,0 +1,276 @@
+{
+  "_export_info": {
+    "tool": "PyTorch DAG Optimizer",
+    "exported_at": "2026-05-16T10:22:52Z",
+    "description": "Optimized computation graph \u2014 topologically sorted via Kahn's BFS with fused/folded operators."
+  },
+  "model_name": "SqueezeNet 1.0",
+  "optimized_graph": {
+    "metadata": {
+      "graph_name": "SqueezeNet 1.0 (Optimized)",
+      "num_nodes": 7,
+      "num_edges": 6,
+      "created_at": "2026-05-16T10:22:51Z",
+      "memory_analysis": {
+        "peak_live_mb": 0.01,
+        "peak_live_nodes": [
+          "classifier_1",
+          "classifier_2"
+        ],
+        "top_consumers": [
+          {
+            "node_id": "output",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "flatten",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "classifier_3",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "classifier_2",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "classifier_1",
+            "memory_mb": 0.0
+          }
+        ]
+      },
+      "optimized_at": "2026-05-16T10:22:52Z"
+    },
+    "nodes": [
+      {
+        "node_id": "cat_7",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          512,
+          1,
+          1
+        ],
+        "kwargs": {
+          "memory_mb": 0.002
+        }
+      },
+      {
+        "node_id": "classifier_0",
+        "op_type": "call_module",
+        "name": "classifier.0",
+        "output_shape": [
+          1,
+          512,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Dropout",
+          "memory_mb": 0.002
+        }
+      },
+      {
+        "node_id": "classifier_1",
+        "op_type": "call_module",
+        "name": "classifier.1",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Conv2d",
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "classifier_2",
+        "op_type": "call_module",
+        "name": "classifier.2",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "ReLU",
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "classifier_3",
+        "op_type": "call_module",
+        "name": "classifier.3",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "AdaptiveAvgPool2d",
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "flatten",
+        "op_type": "call_function",
+        "name": "flatten",
+        "output_shape": [
+          1,
+          1000
+        ],
+        "kwargs": {
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "output",
+        "op_type": "output",
+        "name": "output",
+        "output_shape": [
+          1,
+          1000
+        ],
+        "kwargs": {
+          "memory_mb": 0.004
+        }
+      }
+    ],
+    "edges": [
+      {
+        "src": "cat_7",
+        "dst": "classifier_0"
+      },
+      {
+        "src": "classifier_0",
+        "dst": "classifier_1"
+      },
+      {
+        "src": "classifier_1",
+        "dst": "classifier_2"
+      },
+      {
+        "src": "classifier_2",
+        "dst": "classifier_3"
+      },
+      {
+        "src": "classifier_3",
+        "dst": "flatten"
+      },
+      {
+        "src": "flatten",
+        "dst": "output"
+      }
+    ]
+  },
+  "metrics": {
+    "original_nodes": 68,
+    "original_edges": 59,
+    "optimized_nodes": 7,
+    "optimized_edges": 6,
+    "node_reduction_pct": 89.7,
+    "edge_reduction_pct": 89.8,
+    "fused_ops": 0,
+    "folded_ops": 0,
+    "hbm_rw_eliminated": 0,
+    "hbm_bandwidth_freed_bytes": 0,
+    "hbm_bandwidth_freed_human": "0 B",
+    "hbm_traffic_cut_pct": 0.0,
+    "est_throughput_gain_pct": 0.0,
+    "pass_results": [
+      {
+        "pass_name": "Conv-BN-ReLU Fusion",
+        "nodes_before": 68,
+        "nodes_after": 68,
+        "edges_before": 59,
+        "edges_after": 59,
+        "nodes_removed": 0,
+        "edges_removed": 0,
+        "notes": []
+      },
+      {
+        "pass_name": "Dead Node Elimination",
+        "nodes_before": 68,
+        "nodes_after": 7,
+        "edges_before": 59,
+        "edges_after": 6,
+        "nodes_removed": 61,
+        "edges_removed": 53,
+        "notes": [
+          "Removed dead node: x",
+          "Removed dead node: cat",
+          "Removed dead node: cat_1",
+          "Removed dead node: cat_2",
+          "Removed dead node: cat_3",
+          "Removed dead node: cat_4",
+          "Removed dead node: cat_5",
+          "Removed dead node: cat_6",
+          "Removed dead node: features_0",
+          "Removed dead node: features_4_squeeze"
+        ]
+      },
+      {
+        "pass_name": "Conv-BN Folding",
+        "nodes_before": 7,
+        "nodes_after": 7,
+        "edges_before": 6,
+        "edges_after": 6,
+        "nodes_removed": 0,
+        "edges_removed": 0,
+        "notes": []
+      },
+      {
+        "pass_name": "Memory Footprint Analysis",
+        "nodes_before": 7,
+        "nodes_after": 7,
+        "edges_before": 6,
+        "edges_after": 6,
+        "nodes_removed": 0,
+        "edges_removed": 0,
+        "notes": [
+          "Peak live memory: 0.01 MB",
+          "Top-1 memory node: output (0.00 MB)",
+          "Top-2 memory node: flatten (0.00 MB)",
+          "Top-3 memory node: classifier_3 (0.00 MB)",
+          "Top-4 memory node: classifier_2 (0.00 MB)",
+          "Top-5 memory node: classifier_1 (0.00 MB)"
+        ]
+      }
+    ]
+  },
+  "memory_analysis": {
+    "peak_live_mb": 0.01,
+    "peak_live_nodes": [
+      "classifier_1",
+      "classifier_2"
+    ],
+    "top_consumers": [
+      {
+        "node_id": "output",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "flatten",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "classifier_3",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "classifier_2",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "classifier_1",
+        "memory_mb": 0.0
+      }
+    ]
+  }
+}

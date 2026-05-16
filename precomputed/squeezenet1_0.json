@@ -1,0 +1,1453 @@
+{
+  "status": "success",
+  "model_name": "SqueezeNet 1.0",
+  "original_graph": {
+    "metadata": {
+      "graph_name": "SqueezeNet 1.0",
+      "num_nodes": 68,
+      "num_edges": 59,
+      "created_at": "2026-05-16T10:22:51Z"
+    },
+    "nodes": [
+      {
+        "node_id": "x",
+        "op_type": "placeholder",
+        "name": "x",
+        "output_shape": [
+          1,
+          3,
+          32,
+          32
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "cat",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          128,
+          6,
+          6
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "cat_1",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          128,
+          6,
+          6
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "cat_2",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          256,
+          6,
+          6
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "cat_3",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          256,
+          3,
+          3
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "cat_4",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          384,
+          3,
+          3
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "cat_5",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          384,
+          3,
+          3
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "cat_6",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          512,
+          3,
+          3
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "cat_7",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          512,
+          1,
+          1
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "features_0",
+        "op_type": "call_module",
+        "name": "features.0",
+        "output_shape": [
+          1,
+          96,
+          13,
+          13
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_4_squeeze",
+        "op_type": "call_module",
+        "name": "features.4.squeeze",
+        "output_shape": [
+          1,
+          16,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_5_squeeze",
+        "op_type": "call_module",
+        "name": "features.5.squeeze",
+        "output_shape": [
+          1,
+          32,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_6",
+        "op_type": "call_module",
+        "name": "features.6",
+        "output_shape": [
+          1,
+          256,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "MaxPool2d"
+        }
+      },
+      {
+        "node_id": "features_8_squeeze",
+        "op_type": "call_module",
+        "name": "features.8.squeeze",
+        "output_shape": [
+          1,
+          48,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_9_squeeze",
+        "op_type": "call_module",
+        "name": "features.9.squeeze",
+        "output_shape": [
+          1,
+          48,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_10_squeeze",
+        "op_type": "call_module",
+        "name": "features.10.squeeze",
+        "output_shape": [
+          1,
+          64,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_11",
+        "op_type": "call_module",
+        "name": "features.11",
+        "output_shape": [
+          1,
+          512,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "MaxPool2d"
+        }
+      },
+      {
+        "node_id": "classifier_0",
+        "op_type": "call_module",
+        "name": "classifier.0",
+        "output_shape": [
+          1,
+          512,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Dropout"
+        }
+      },
+      {
+        "node_id": "features_1",
+        "op_type": "call_module",
+        "name": "features.1",
+        "output_shape": [
+          1,
+          96,
+          13,
+          13
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_4_squeeze_activation",
+        "op_type": "call_module",
+        "name": "features.4.squeeze_activation",
+        "output_shape": [
+          1,
+          16,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_5_squeeze_activation",
+        "op_type": "call_module",
+        "name": "features.5.squeeze_activation",
+        "output_shape": [
+          1,
+          32,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_7_squeeze",
+        "op_type": "call_module",
+        "name": "features.7.squeeze",
+        "output_shape": [
+          1,
+          32,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_8_squeeze_activation",
+        "op_type": "call_module",
+        "name": "features.8.squeeze_activation",
+        "output_shape": [
+          1,
+          48,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_9_squeeze_activation",
+        "op_type": "call_module",
+        "name": "features.9.squeeze_activation",
+        "output_shape": [
+          1,
+          48,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_10_squeeze_activation",
+        "op_type": "call_module",
+        "name": "features.10.squeeze_activation",
+        "output_shape": [
+          1,
+          64,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_12_squeeze",
+        "op_type": "call_module",
+        "name": "features.12.squeeze",
+        "output_shape": [
+          1,
+          64,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "classifier_1",
+        "op_type": "call_module",
+        "name": "classifier.1",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_2",
+        "op_type": "call_module",
+        "name": "features.2",
+        "output_shape": [
+          1,
+          96,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "MaxPool2d"
+        }
+      },
+      {
+        "node_id": "features_4_expand1x1",
+        "op_type": "call_module",
+        "name": "features.4.expand1x1",
+        "output_shape": [
+          1,
+          64,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_4_expand3x3",
+        "op_type": "call_module",
+        "name": "features.4.expand3x3",
+        "output_shape": [
+          1,
+          64,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_5_expand1x1",
+        "op_type": "call_module",
+        "name": "features.5.expand1x1",
+        "output_shape": [
+          1,
+          128,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_5_expand3x3",
+        "op_type": "call_module",
+        "name": "features.5.expand3x3",
+        "output_shape": [
+          1,
+          128,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_7_squeeze_activation",
+        "op_type": "call_module",
+        "name": "features.7.squeeze_activation",
+        "output_shape": [
+          1,
+          32,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_8_expand1x1",
+        "op_type": "call_module",
+        "name": "features.8.expand1x1",
+        "output_shape": [
+          1,
+          192,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_8_expand3x3",
+        "op_type": "call_module",
+        "name": "features.8.expand3x3",
+        "output_shape": [
+          1,
+          192,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_9_expand1x1",
+        "op_type": "call_module",
+        "name": "features.9.expand1x1",
+        "output_shape": [
+          1,
+          192,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_9_expand3x3",
+        "op_type": "call_module",
+        "name": "features.9.expand3x3",
+        "output_shape": [
+          1,
+          192,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_10_expand1x1",
+        "op_type": "call_module",
+        "name": "features.10.expand1x1",
+        "output_shape": [
+          1,
+          256,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_10_expand3x3",
+        "op_type": "call_module",
+        "name": "features.10.expand3x3",
+        "output_shape": [
+          1,
+          256,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_12_squeeze_activation",
+        "op_type": "call_module",
+        "name": "features.12.squeeze_activation",
+        "output_shape": [
+          1,
+          64,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "classifier_2",
+        "op_type": "call_module",
+        "name": "classifier.2",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_3_squeeze",
+        "op_type": "call_module",
+        "name": "features.3.squeeze",
+        "output_shape": [
+          1,
+          16,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_4_expand1x1_activation",
+        "op_type": "call_module",
+        "name": "features.4.expand1x1_activation",
+        "output_shape": [
+          1,
+          64,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_4_expand3x3_activation",
+        "op_type": "call_module",
+        "name": "features.4.expand3x3_activation",
+        "output_shape": [
+          1,
+          64,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_5_expand1x1_activation",
+        "op_type": "call_module",
+        "name": "features.5.expand1x1_activation",
+        "output_shape": [
+          1,
+          128,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_5_expand3x3_activation",
+        "op_type": "call_module",
+        "name": "features.5.expand3x3_activation",
+        "output_shape": [
+          1,
+          128,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_7_expand1x1",
+        "op_type": "call_module",
+        "name": "features.7.expand1x1",
+        "output_shape": [
+          1,
+          128,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_7_expand3x3",
+        "op_type": "call_module",
+        "name": "features.7.expand3x3",
+        "output_shape": [
+          1,
+          128,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_8_expand1x1_activation",
+        "op_type": "call_module",
+        "name": "features.8.expand1x1_activation",
+        "output_shape": [
+          1,
+          192,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_8_expand3x3_activation",
+        "op_type": "call_module",
+        "name": "features.8.expand3x3_activation",
+        "output_shape": [
+          1,
+          192,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_9_expand1x1_activation",
+        "op_type": "call_module",
+        "name": "features.9.expand1x1_activation",
+        "output_shape": [
+          1,
+          192,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_9_expand3x3_activation",
+        "op_type": "call_module",
+        "name": "features.9.expand3x3_activation",
+        "output_shape": [
+          1,
+          192,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_10_expand1x1_activation",
+        "op_type": "call_module",
+        "name": "features.10.expand1x1_activation",
+        "output_shape": [
+          1,
+          256,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_10_expand3x3_activation",
+        "op_type": "call_module",
+        "name": "features.10.expand3x3_activation",
+        "output_shape": [
+          1,
+          256,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_12_expand1x1",
+        "op_type": "call_module",
+        "name": "features.12.expand1x1",
+        "output_shape": [
+          1,
+          256,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_12_expand3x3",
+        "op_type": "call_module",
+        "name": "features.12.expand3x3",
+        "output_shape": [
+          1,
+          256,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "classifier_3",
+        "op_type": "call_module",
+        "name": "classifier.3",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "AdaptiveAvgPool2d"
+        }
+      },
+      {
+        "node_id": "features_3_squeeze_activation",
+        "op_type": "call_module",
+        "name": "features.3.squeeze_activation",
+        "output_shape": [
+          1,
+          16,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_7_expand1x1_activation",
+        "op_type": "call_module",
+        "name": "features.7.expand1x1_activation",
+        "output_shape": [
+          1,
+          128,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_7_expand3x3_activation",
+        "op_type": "call_module",
+        "name": "features.7.expand3x3_activation",
+        "output_shape": [
+          1,
+          128,
+          3,
+          3
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_12_expand1x1_activation",
+        "op_type": "call_module",
+        "name": "features.12.expand1x1_activation",
+        "output_shape": [
+          1,
+          256,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_12_expand3x3_activation",
+        "op_type": "call_module",
+        "name": "features.12.expand3x3_activation",
+        "output_shape": [
+          1,
+          256,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "flatten",
+        "op_type": "call_function",
+        "name": "flatten",
+        "output_shape": [
+          1,
+          1000
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "features_3_expand1x1",
+        "op_type": "call_module",
+        "name": "features.3.expand1x1",
+        "output_shape": [
+          1,
+          64,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "features_3_expand3x3",
+        "op_type": "call_module",
+        "name": "features.3.expand3x3",
+        "output_shape": [
+          1,
+          64,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "Conv2d"
+        }
+      },
+      {
+        "node_id": "output",
+        "op_type": "output",
+        "name": "output",
+        "output_shape": [
+          1,
+          1000
+        ],
+        "kwargs": {}
+      },
+      {
+        "node_id": "features_3_expand1x1_activation",
+        "op_type": "call_module",
+        "name": "features.3.expand1x1_activation",
+        "output_shape": [
+          1,
+          64,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      },
+      {
+        "node_id": "features_3_expand3x3_activation",
+        "op_type": "call_module",
+        "name": "features.3.expand3x3_activation",
+        "output_shape": [
+          1,
+          64,
+          6,
+          6
+        ],
+        "kwargs": {
+          "module_class": "ReLU"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "src": "x",
+        "dst": "features_0"
+      },
+      {
+        "src": "features_0",
+        "dst": "features_1"
+      },
+      {
+        "src": "features_1",
+        "dst": "features_2"
+      },
+      {
+        "src": "features_2",
+        "dst": "features_3_squeeze"
+      },
+      {
+        "src": "features_3_squeeze",
+        "dst": "features_3_squeeze_activation"
+      },
+      {
+        "src": "features_3_squeeze_activation",
+        "dst": "features_3_expand1x1"
+      },
+      {
+        "src": "features_3_squeeze_activation",
+        "dst": "features_3_expand3x3"
+      },
+      {
+        "src": "features_3_expand1x1",
+        "dst": "features_3_expand1x1_activation"
+      },
+      {
+        "src": "features_3_expand3x3",
+        "dst": "features_3_expand3x3_activation"
+      },
+      {
+        "src": "cat",
+        "dst": "features_4_squeeze"
+      },
+      {
+        "src": "features_4_squeeze",
+        "dst": "features_4_squeeze_activation"
+      },
+      {
+        "src": "features_4_squeeze_activation",
+        "dst": "features_4_expand1x1"
+      },
+      {
+        "src": "features_4_squeeze_activation",
+        "dst": "features_4_expand3x3"
+      },
+      {
+        "src": "features_4_expand1x1",
+        "dst": "features_4_expand1x1_activation"
+      },
+      {
+        "src": "features_4_expand3x3",
+        "dst": "features_4_expand3x3_activation"
+      },
+      {
+        "src": "cat_1",
+        "dst": "features_5_squeeze"
+      },
+      {
+        "src": "features_5_squeeze",
+        "dst": "features_5_squeeze_activation"
+      },
+      {
+        "src": "features_5_squeeze_activation",
+        "dst": "features_5_expand1x1"
+      },
+      {
+        "src": "features_5_squeeze_activation",
+        "dst": "features_5_expand3x3"
+      },
+      {
+        "src": "features_5_expand1x1",
+        "dst": "features_5_expand1x1_activation"
+      },
+      {
+        "src": "features_5_expand3x3",
+        "dst": "features_5_expand3x3_activation"
+      },
+      {
+        "src": "cat_2",
+        "dst": "features_6"
+      },
+      {
+        "src": "features_6",
+        "dst": "features_7_squeeze"
+      },
+      {
+        "src": "features_7_squeeze",
+        "dst": "features_7_squeeze_activation"
+      },
+      {
+        "src": "features_7_squeeze_activation",
+        "dst": "features_7_expand1x1"
+      },
+      {
+        "src": "features_7_squeeze_activation",
+        "dst": "features_7_expand3x3"
+      },
+      {
+        "src": "features_7_expand1x1",
+        "dst": "features_7_expand1x1_activation"
+      },
+      {
+        "src": "features_7_expand3x3",
+        "dst": "features_7_expand3x3_activation"
+      },
+      {
+        "src": "cat_3",
+        "dst": "features_8_squeeze"
+      },
+      {
+        "src": "features_8_squeeze",
+        "dst": "features_8_squeeze_activation"
+      },
+      {
+        "src": "features_8_squeeze_activation",
+        "dst": "features_8_expand1x1"
+      },
+      {
+        "src": "features_8_squeeze_activation",
+        "dst": "features_8_expand3x3"
+      },
+      {
+        "src": "features_8_expand1x1",
+        "dst": "features_8_expand1x1_activation"
+      },
+      {
+        "src": "features_8_expand3x3",
+        "dst": "features_8_expand3x3_activation"
+      },
+      {
+        "src": "cat_4",
+        "dst": "features_9_squeeze"
+      },
+      {
+        "src": "features_9_squeeze",
+        "dst": "features_9_squeeze_activation"
+      },
+      {
+        "src": "features_9_squeeze_activation",
+        "dst": "features_9_expand1x1"
+      },
+      {
+        "src": "features_9_squeeze_activation",
+        "dst": "features_9_expand3x3"
+      },
+      {
+        "src": "features_9_expand1x1",
+        "dst": "features_9_expand1x1_activation"
+      },
+      {
+        "src": "features_9_expand3x3",
+        "dst": "features_9_expand3x3_activation"
+      },
+      {
+        "src": "cat_5",
+        "dst": "features_10_squeeze"
+      },
+      {
+        "src": "features_10_squeeze",
+        "dst": "features_10_squeeze_activation"
+      },
+      {
+        "src": "features_10_squeeze_activation",
+        "dst": "features_10_expand1x1"
+      },
+      {
+        "src": "features_10_squeeze_activation",
+        "dst": "features_10_expand3x3"
+      },
+      {
+        "src": "features_10_expand1x1",
+        "dst": "features_10_expand1x1_activation"
+      },
+      {
+        "src": "features_10_expand3x3",
+        "dst": "features_10_expand3x3_activation"
+      },
+      {
+        "src": "cat_6",
+        "dst": "features_11"
+      },
+      {
+        "src": "features_11",
+        "dst": "features_12_squeeze"
+      },
+      {
+        "src": "features_12_squeeze",
+        "dst": "features_12_squeeze_activation"
+      },
+      {
+        "src": "features_12_squeeze_activation",
+        "dst": "features_12_expand1x1"
+      },
+      {
+        "src": "features_12_squeeze_activation",
+        "dst": "features_12_expand3x3"
+      },
+      {
+        "src": "features_12_expand1x1",
+        "dst": "features_12_expand1x1_activation"
+      },
+      {
+        "src": "features_12_expand3x3",
+        "dst": "features_12_expand3x3_activation"
+      },
+      {
+        "src": "cat_7",
+        "dst": "classifier_0"
+      },
+      {
+        "src": "classifier_0",
+        "dst": "classifier_1"
+      },
+      {
+        "src": "classifier_1",
+        "dst": "classifier_2"
+      },
+      {
+        "src": "classifier_2",
+        "dst": "classifier_3"
+      },
+      {
+        "src": "classifier_3",
+        "dst": "flatten"
+      },
+      {
+        "src": "flatten",
+        "dst": "output"
+      }
+    ]
+  },
+  "optimized_graph": {
+    "metadata": {
+      "graph_name": "SqueezeNet 1.0 (Optimized)",
+      "num_nodes": 7,
+      "num_edges": 6,
+      "created_at": "2026-05-16T10:22:51Z",
+      "memory_analysis": {
+        "peak_live_mb": 0.01,
+        "peak_live_nodes": [
+          "classifier_1",
+          "classifier_2"
+        ],
+        "top_consumers": [
+          {
+            "node_id": "output",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "flatten",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "classifier_3",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "classifier_2",
+            "memory_mb": 0.0
+          },
+          {
+            "node_id": "classifier_1",
+            "memory_mb": 0.0
+          }
+        ]
+      },
+      "optimized_at": "2026-05-16T10:22:52Z"
+    },
+    "nodes": [
+      {
+        "node_id": "cat_7",
+        "op_type": "call_function",
+        "name": "cat",
+        "output_shape": [
+          1,
+          512,
+          1,
+          1
+        ],
+        "kwargs": {
+          "memory_mb": 0.002
+        }
+      },
+      {
+        "node_id": "classifier_0",
+        "op_type": "call_module",
+        "name": "classifier.0",
+        "output_shape": [
+          1,
+          512,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Dropout",
+          "memory_mb": 0.002
+        }
+      },
+      {
+        "node_id": "classifier_1",
+        "op_type": "call_module",
+        "name": "classifier.1",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Conv2d",
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "classifier_2",
+        "op_type": "call_module",
+        "name": "classifier.2",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "ReLU",
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "classifier_3",
+        "op_type": "call_module",
+        "name": "classifier.3",
+        "output_shape": [
+          1,
+          1000,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "AdaptiveAvgPool2d",
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "flatten",
+        "op_type": "call_function",
+        "name": "flatten",
+        "output_shape": [
+          1,
+          1000
+        ],
+        "kwargs": {
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "output",
+        "op_type": "output",
+        "name": "output",
+        "output_shape": [
+          1,
+          1000
+        ],
+        "kwargs": {
+          "memory_mb": 0.004
+        }
+      }
+    ],
+    "edges": [
+      {
+        "src": "cat_7",
+        "dst": "classifier_0"
+      },
+      {
+        "src": "classifier_0",
+        "dst": "classifier_1"
+      },
+      {
+        "src": "classifier_1",
+        "dst": "classifier_2"
+      },
+      {
+        "src": "classifier_2",
+        "dst": "classifier_3"
+      },
+      {
+        "src": "classifier_3",
+        "dst": "flatten"
+      },
+      {
+        "src": "flatten",
+        "dst": "output"
+      }
+    ]
+  },
+  "metrics": {
+    "original_nodes": 68,
+    "original_edges": 59,
+    "optimized_nodes": 7,
+    "optimized_edges": 6,
+    "node_reduction_pct": 89.7,
+    "edge_reduction_pct": 89.8,
+    "fused_ops": 0,
+    "folded_ops": 0,
+    "hbm_rw_eliminated": 0,
+    "hbm_bandwidth_freed_bytes": 0,
+    "hbm_bandwidth_freed_human": "0 B",
+    "hbm_traffic_cut_pct": 0.0,
+    "est_throughput_gain_pct": 0.0,
+    "pass_results": [
+      {
+        "pass_name": "Conv-BN-ReLU Fusion",
+        "nodes_before": 68,
+        "nodes_after": 68,
+        "edges_before": 59,
+        "edges_after": 59,
+        "nodes_removed": 0,
+        "edges_removed": 0,
+        "notes": []
+      },
+      {
+        "pass_name": "Dead Node Elimination",
+        "nodes_before": 68,
+        "nodes_after": 7,
+        "edges_before": 59,
+        "edges_after": 6,
+        "nodes_removed": 61,
+        "edges_removed": 53,
+        "notes": [
+          "Removed dead node: x",
+          "Removed dead node: cat",
+          "Removed dead node: cat_1",
+          "Removed dead node: cat_2",
+          "Removed dead node: cat_3",
+          "Removed dead node: cat_4",
+          "Removed dead node: cat_5",
+          "Removed dead node: cat_6",
+          "Removed dead node: features_0",
+          "Removed dead node: features_4_squeeze"
+        ]
+      },
+      {
+        "pass_name": "Conv-BN Folding",
+        "nodes_before": 7,
+        "nodes_after": 7,
+        "edges_before": 6,
+        "edges_after": 6,
+        "nodes_removed": 0,
+        "edges_removed": 0,
+        "notes": []
+      },
+      {
+        "pass_name": "Memory Footprint Analysis",
+        "nodes_before": 7,
+        "nodes_after": 7,
+        "edges_before": 6,
+        "edges_after": 6,
+        "nodes_removed": 0,
+        "edges_removed": 0,
+        "notes": [
+          "Peak live memory: 0.01 MB",
+          "Top-1 memory node: output (0.00 MB)",
+          "Top-2 memory node: flatten (0.00 MB)",
+          "Top-3 memory node: classifier_3 (0.00 MB)",
+          "Top-4 memory node: classifier_2 (0.00 MB)",
+          "Top-5 memory node: classifier_1 (0.00 MB)"
+        ]
+      }
+    ]
+  },
+  "memory_analysis": {
+    "peak_live_mb": 0.01,
+    "peak_live_nodes": [
+      "classifier_1",
+      "classifier_2"
+    ],
+    "top_consumers": [
+      {
+        "node_id": "output",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "flatten",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "classifier_3",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "classifier_2",
+        "memory_mb": 0.0
+      },
+      {
+        "node_id": "classifier_1",
+        "memory_mb": 0.0
+      }
+    ]
+  },
+  "downloads": {
+    "pt_url": null,
+    "pt_filename": null,
+    "pt_speedup_info": "TorchScript export available when running locally. Use: model = SqueezeNet1.0(); torch.jit.trace(model, torch.randn([1, 3, 224, 224])).save('optimized.pt')",
+    "json_url": "/api/downloads/optimized_graph_squeezenet1_0.json",
+    "json_filename": "optimized_graph_squeezenet1_0.json"
+  }
+}

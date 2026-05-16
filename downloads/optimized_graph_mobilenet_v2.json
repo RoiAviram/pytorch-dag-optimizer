@@ -1,0 +1,1924 @@
+{
+  "_export_info": {
+    "tool": "PyTorch DAG Optimizer",
+    "exported_at": "2026-05-16T10:22:51Z",
+    "description": "Optimized computation graph \u2014 topologically sorted via Kahn's BFS with fused/folded operators."
+  },
+  "model_name": "MobileNet V2",
+  "optimized_graph": {
+    "metadata": {
+      "graph_name": "MobileNet V2 (Optimized)",
+      "num_nodes": 68,
+      "num_edges": 77,
+      "created_at": "2026-05-16T10:22:51Z",
+      "memory_analysis": {
+        "peak_live_mb": 0.01,
+        "peak_live_nodes": [
+          "x"
+        ],
+        "top_consumers": [
+          {
+            "node_id": "x",
+            "memory_mb": 0.01
+          },
+          {
+            "node_id": "add",
+            "memory_mb": 0.01
+          },
+          {
+            "node_id": "flatten",
+            "memory_mb": 0.01
+          },
+          {
+            "node_id": "classifier_0",
+            "memory_mb": 0.01
+          },
+          {
+            "node_id": "adaptive_avg_pool2d",
+            "memory_mb": 0.01
+          }
+        ]
+      },
+      "optimized_at": "2026-05-16T10:22:51Z"
+    },
+    "nodes": [
+      {
+        "node_id": "x",
+        "op_type": "placeholder",
+        "name": "x",
+        "output_shape": [
+          1,
+          3,
+          32,
+          32
+        ],
+        "kwargs": {
+          "memory_mb": 0.0123
+        }
+      },
+      {
+        "node_id": "add",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          24,
+          8,
+          8
+        ],
+        "kwargs": {
+          "memory_mb": 0.0061
+        }
+      },
+      {
+        "node_id": "add_1",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          32,
+          4,
+          4
+        ],
+        "kwargs": {
+          "memory_mb": 0.002
+        }
+      },
+      {
+        "node_id": "add_2",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          32,
+          4,
+          4
+        ],
+        "kwargs": {
+          "memory_mb": 0.002
+        }
+      },
+      {
+        "node_id": "add_3",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          64,
+          2,
+          2
+        ],
+        "kwargs": {
+          "memory_mb": 0.001
+        }
+      },
+      {
+        "node_id": "add_4",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          64,
+          2,
+          2
+        ],
+        "kwargs": {
+          "memory_mb": 0.001
+        }
+      },
+      {
+        "node_id": "add_5",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          64,
+          2,
+          2
+        ],
+        "kwargs": {
+          "memory_mb": 0.001
+        }
+      },
+      {
+        "node_id": "add_6",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          96,
+          2,
+          2
+        ],
+        "kwargs": {
+          "memory_mb": 0.0015
+        }
+      },
+      {
+        "node_id": "add_7",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          96,
+          2,
+          2
+        ],
+        "kwargs": {
+          "memory_mb": 0.0015
+        }
+      },
+      {
+        "node_id": "add_8",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          160,
+          1,
+          1
+        ],
+        "kwargs": {
+          "memory_mb": 0.0006
+        }
+      },
+      {
+        "node_id": "add_9",
+        "op_type": "call_function",
+        "name": "add",
+        "output_shape": [
+          1,
+          160,
+          1,
+          1
+        ],
+        "kwargs": {
+          "memory_mb": 0.0006
+        }
+      },
+      {
+        "node_id": "adaptive_avg_pool2d",
+        "op_type": "call_function",
+        "name": "adaptive_avg_pool2d",
+        "output_shape": [
+          1,
+          1280,
+          1,
+          1
+        ],
+        "kwargs": {
+          "memory_mb": 0.0051
+        }
+      },
+      {
+        "node_id": "flatten",
+        "op_type": "call_function",
+        "name": "flatten",
+        "output_shape": [
+          1,
+          1280
+        ],
+        "kwargs": {
+          "memory_mb": 0.0051
+        }
+      },
+      {
+        "node_id": "classifier_0",
+        "op_type": "call_module",
+        "name": "classifier.0",
+        "output_shape": [
+          1,
+          1280
+        ],
+        "kwargs": {
+          "module_class": "Dropout",
+          "memory_mb": 0.0051
+        }
+      },
+      {
+        "node_id": "classifier_1",
+        "op_type": "call_module",
+        "name": "classifier.1",
+        "output_shape": [
+          1,
+          1000
+        ],
+        "kwargs": {
+          "module_class": "Linear",
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "output",
+        "op_type": "output",
+        "name": "output",
+        "output_shape": [
+          1,
+          1000
+        ],
+        "kwargs": {
+          "memory_mb": 0.004
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_0_0+features_0_1+features_0_2]",
+        "output_shape": [
+          1,
+          32,
+          16,
+          16
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_0_0",
+            "features_0_1",
+            "features_0_2"
+          ],
+          "conv_shape": [
+            1,
+            32,
+            16,
+            16
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_1_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_1_conv_0_0+features_1_conv_0_1+features_1_conv_0_2]",
+        "output_shape": [
+          1,
+          32,
+          16,
+          16
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_1_conv_0_0",
+            "features_1_conv_0_1",
+            "features_1_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            32,
+            16,
+            16
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_2_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_2_conv_0_0+features_2_conv_0_1+features_2_conv_0_2]",
+        "output_shape": [
+          1,
+          96,
+          16,
+          16
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_2_conv_0_0",
+            "features_2_conv_0_1",
+            "features_2_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            96,
+            16,
+            16
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_2_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_2_conv_1_0+features_2_conv_1_1+features_2_conv_1_2]",
+        "output_shape": [
+          1,
+          96,
+          8,
+          8
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_2_conv_1_0",
+            "features_2_conv_1_1",
+            "features_2_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            96,
+            8,
+            8
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_3_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_3_conv_0_0+features_3_conv_0_1+features_3_conv_0_2]",
+        "output_shape": [
+          1,
+          144,
+          8,
+          8
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_3_conv_0_0",
+            "features_3_conv_0_1",
+            "features_3_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            144,
+            8,
+            8
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_3_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_3_conv_1_0+features_3_conv_1_1+features_3_conv_1_2]",
+        "output_shape": [
+          1,
+          144,
+          8,
+          8
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_3_conv_1_0",
+            "features_3_conv_1_1",
+            "features_3_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            144,
+            8,
+            8
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_4_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_4_conv_0_0+features_4_conv_0_1+features_4_conv_0_2]",
+        "output_shape": [
+          1,
+          144,
+          8,
+          8
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_4_conv_0_0",
+            "features_4_conv_0_1",
+            "features_4_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            144,
+            8,
+            8
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_4_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_4_conv_1_0+features_4_conv_1_1+features_4_conv_1_2]",
+        "output_shape": [
+          1,
+          144,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_4_conv_1_0",
+            "features_4_conv_1_1",
+            "features_4_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            144,
+            4,
+            4
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_5_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_5_conv_0_0+features_5_conv_0_1+features_5_conv_0_2]",
+        "output_shape": [
+          1,
+          192,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_5_conv_0_0",
+            "features_5_conv_0_1",
+            "features_5_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            192,
+            4,
+            4
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_5_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_5_conv_1_0+features_5_conv_1_1+features_5_conv_1_2]",
+        "output_shape": [
+          1,
+          192,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_5_conv_1_0",
+            "features_5_conv_1_1",
+            "features_5_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            192,
+            4,
+            4
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_6_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_6_conv_0_0+features_6_conv_0_1+features_6_conv_0_2]",
+        "output_shape": [
+          1,
+          192,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_6_conv_0_0",
+            "features_6_conv_0_1",
+            "features_6_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            192,
+            4,
+            4
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_6_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_6_conv_1_0+features_6_conv_1_1+features_6_conv_1_2]",
+        "output_shape": [
+          1,
+          192,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_6_conv_1_0",
+            "features_6_conv_1_1",
+            "features_6_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            192,
+            4,
+            4
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_7_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_7_conv_0_0+features_7_conv_0_1+features_7_conv_0_2]",
+        "output_shape": [
+          1,
+          192,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_7_conv_0_0",
+            "features_7_conv_0_1",
+            "features_7_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            192,
+            4,
+            4
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_7_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_7_conv_1_0+features_7_conv_1_1+features_7_conv_1_2]",
+        "output_shape": [
+          1,
+          192,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_7_conv_1_0",
+            "features_7_conv_1_1",
+            "features_7_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            192,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_8_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_8_conv_0_0+features_8_conv_0_1+features_8_conv_0_2]",
+        "output_shape": [
+          1,
+          384,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_8_conv_0_0",
+            "features_8_conv_0_1",
+            "features_8_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            384,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_8_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_8_conv_1_0+features_8_conv_1_1+features_8_conv_1_2]",
+        "output_shape": [
+          1,
+          384,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_8_conv_1_0",
+            "features_8_conv_1_1",
+            "features_8_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            384,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_9_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_9_conv_0_0+features_9_conv_0_1+features_9_conv_0_2]",
+        "output_shape": [
+          1,
+          384,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_9_conv_0_0",
+            "features_9_conv_0_1",
+            "features_9_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            384,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_9_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_9_conv_1_0+features_9_conv_1_1+features_9_conv_1_2]",
+        "output_shape": [
+          1,
+          384,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_9_conv_1_0",
+            "features_9_conv_1_1",
+            "features_9_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            384,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_10_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_10_conv_0_0+features_10_conv_0_1+features_10_conv_0_2]",
+        "output_shape": [
+          1,
+          384,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_10_conv_0_0",
+            "features_10_conv_0_1",
+            "features_10_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            384,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_10_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_10_conv_1_0+features_10_conv_1_1+features_10_conv_1_2]",
+        "output_shape": [
+          1,
+          384,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_10_conv_1_0",
+            "features_10_conv_1_1",
+            "features_10_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            384,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_11_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_11_conv_0_0+features_11_conv_0_1+features_11_conv_0_2]",
+        "output_shape": [
+          1,
+          384,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_11_conv_0_0",
+            "features_11_conv_0_1",
+            "features_11_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            384,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_11_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_11_conv_1_0+features_11_conv_1_1+features_11_conv_1_2]",
+        "output_shape": [
+          1,
+          384,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_11_conv_1_0",
+            "features_11_conv_1_1",
+            "features_11_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            384,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_12_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_12_conv_0_0+features_12_conv_0_1+features_12_conv_0_2]",
+        "output_shape": [
+          1,
+          576,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_12_conv_0_0",
+            "features_12_conv_0_1",
+            "features_12_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            576,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_12_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_12_conv_1_0+features_12_conv_1_1+features_12_conv_1_2]",
+        "output_shape": [
+          1,
+          576,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_12_conv_1_0",
+            "features_12_conv_1_1",
+            "features_12_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            576,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_13_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_13_conv_0_0+features_13_conv_0_1+features_13_conv_0_2]",
+        "output_shape": [
+          1,
+          576,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_13_conv_0_0",
+            "features_13_conv_0_1",
+            "features_13_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            576,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_13_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_13_conv_1_0+features_13_conv_1_1+features_13_conv_1_2]",
+        "output_shape": [
+          1,
+          576,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_13_conv_1_0",
+            "features_13_conv_1_1",
+            "features_13_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            576,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_14_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_14_conv_0_0+features_14_conv_0_1+features_14_conv_0_2]",
+        "output_shape": [
+          1,
+          576,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_14_conv_0_0",
+            "features_14_conv_0_1",
+            "features_14_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            576,
+            2,
+            2
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_14_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_14_conv_1_0+features_14_conv_1_1+features_14_conv_1_2]",
+        "output_shape": [
+          1,
+          576,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_14_conv_1_0",
+            "features_14_conv_1_1",
+            "features_14_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            576,
+            1,
+            1
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_15_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_15_conv_0_0+features_15_conv_0_1+features_15_conv_0_2]",
+        "output_shape": [
+          1,
+          960,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_15_conv_0_0",
+            "features_15_conv_0_1",
+            "features_15_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            960,
+            1,
+            1
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_15_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_15_conv_1_0+features_15_conv_1_1+features_15_conv_1_2]",
+        "output_shape": [
+          1,
+          960,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_15_conv_1_0",
+            "features_15_conv_1_1",
+            "features_15_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            960,
+            1,
+            1
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_16_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_16_conv_0_0+features_16_conv_0_1+features_16_conv_0_2]",
+        "output_shape": [
+          1,
+          960,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_16_conv_0_0",
+            "features_16_conv_0_1",
+            "features_16_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            960,
+            1,
+            1
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_16_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_16_conv_1_0+features_16_conv_1_1+features_16_conv_1_2]",
+        "output_shape": [
+          1,
+          960,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_16_conv_1_0",
+            "features_16_conv_1_1",
+            "features_16_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            960,
+            1,
+            1
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_17_conv_0_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_17_conv_0_0+features_17_conv_0_1+features_17_conv_0_2]",
+        "output_shape": [
+          1,
+          960,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_17_conv_0_0",
+            "features_17_conv_0_1",
+            "features_17_conv_0_2"
+          ],
+          "conv_shape": [
+            1,
+            960,
+            1,
+            1
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_17_conv_1_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_17_conv_1_0+features_17_conv_1_1+features_17_conv_1_2]",
+        "output_shape": [
+          1,
+          960,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_17_conv_1_0",
+            "features_17_conv_1_1",
+            "features_17_conv_1_2"
+          ],
+          "conv_shape": [
+            1,
+            960,
+            1,
+            1
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "fused_cbr_features_18_0",
+        "op_type": "fused_op",
+        "name": "FusedConvBNReLU[features_18_0+features_18_1+features_18_2]",
+        "output_shape": [
+          1,
+          1280,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Fused_Conv_BN_ReLU",
+          "fused_from": [
+            "features_18_0",
+            "features_18_1",
+            "features_18_2"
+          ],
+          "conv_shape": [
+            1,
+            1280,
+            1,
+            1
+          ],
+          "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_1_conv_1",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_1_conv_1+features_1_conv_2]",
+        "output_shape": [
+          1,
+          16,
+          16,
+          16
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_1_conv_1",
+            "features_1_conv_2"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_2_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_2_conv_2+features_2_conv_3]",
+        "output_shape": [
+          1,
+          24,
+          8,
+          8
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_2_conv_2",
+            "features_2_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_3_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_3_conv_2+features_3_conv_3]",
+        "output_shape": [
+          1,
+          24,
+          8,
+          8
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_3_conv_2",
+            "features_3_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_4_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_4_conv_2+features_4_conv_3]",
+        "output_shape": [
+          1,
+          32,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_4_conv_2",
+            "features_4_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_5_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_5_conv_2+features_5_conv_3]",
+        "output_shape": [
+          1,
+          32,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_5_conv_2",
+            "features_5_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_6_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_6_conv_2+features_6_conv_3]",
+        "output_shape": [
+          1,
+          32,
+          4,
+          4
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_6_conv_2",
+            "features_6_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_7_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_7_conv_2+features_7_conv_3]",
+        "output_shape": [
+          1,
+          64,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_7_conv_2",
+            "features_7_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_8_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_8_conv_2+features_8_conv_3]",
+        "output_shape": [
+          1,
+          64,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_8_conv_2",
+            "features_8_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_9_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_9_conv_2+features_9_conv_3]",
+        "output_shape": [
+          1,
+          64,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_9_conv_2",
+            "features_9_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_10_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_10_conv_2+features_10_conv_3]",
+        "output_shape": [
+          1,
+          64,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_10_conv_2",
+            "features_10_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_11_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_11_conv_2+features_11_conv_3]",
+        "output_shape": [
+          1,
+          96,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_11_conv_2",
+            "features_11_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_12_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_12_conv_2+features_12_conv_3]",
+        "output_shape": [
+          1,
+          96,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_12_conv_2",
+            "features_12_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_13_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_13_conv_2+features_13_conv_3]",
+        "output_shape": [
+          1,
+          96,
+          2,
+          2
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_13_conv_2",
+            "features_13_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_14_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_14_conv_2+features_14_conv_3]",
+        "output_shape": [
+          1,
+          160,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_14_conv_2",
+            "features_14_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_15_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_15_conv_2+features_15_conv_3]",
+        "output_shape": [
+          1,
+          160,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_15_conv_2",
+            "features_15_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_16_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_16_conv_2+features_16_conv_3]",
+        "output_shape": [
+          1,
+          160,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_16_conv_2",
+            "features_16_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      },
+      {
+        "node_id": "folded_cb_features_17_conv_2",
+        "op_type": "folded_op",
+        "name": "FoldedConvBN[features_17_conv_2+features_17_conv_3]",
+        "output_shape": [
+          1,
+          320,
+          1,
+          1
+        ],
+        "kwargs": {
+          "module_class": "Folded_Conv_BN",
+          "fused_from": [
+            "features_17_conv_2",
+            "features_17_conv_3"
+          ],
+          "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
+        }
+      }
+    ],
+    "edges": [
+      {
+        "src": "x",
+        "dst": "fused_cbr_features_0_0"
+      },
+      {
+        "src": "add",
+        "dst": "fused_cbr_features_4_conv_0_0"
+      },
+      {
+        "src": "add_1",
+        "dst": "add_2"
+      },
+      {
+        "src": "add_1",
+        "dst": "fused_cbr_features_6_conv_0_0"
+      },
+      {
+        "src": "add_2",
+        "dst": "fused_cbr_features_7_conv_0_0"
+      },
+      {
+        "src": "add_3",
+        "dst": "add_4"
+      },
+      {
+        "src": "add_3",
+        "dst": "fused_cbr_features_9_conv_0_0"
+      },
+      {
+        "src": "add_4",
+        "dst": "add_5"
+      },
+      {
+        "src": "add_4",
+        "dst": "fused_cbr_features_10_conv_0_0"
+      },
+      {
+        "src": "add_5",
+        "dst": "fused_cbr_features_11_conv_0_0"
+      },
+      {
+        "src": "add_6",
+        "dst": "add_7"
+      },
+      {
+        "src": "add_6",
+        "dst": "fused_cbr_features_13_conv_0_0"
+      },
+      {
+        "src": "add_7",
+        "dst": "fused_cbr_features_14_conv_0_0"
+      },
+      {
+        "src": "add_8",
+        "dst": "add_9"
+      },
+      {
+        "src": "add_8",
+        "dst": "fused_cbr_features_16_conv_0_0"
+      },
+      {
+        "src": "add_9",
+        "dst": "fused_cbr_features_17_conv_0_0"
+      },
+      {
+        "src": "adaptive_avg_pool2d",
+        "dst": "flatten"
+      },
+      {
+        "src": "flatten",
+        "dst": "classifier_0"
+      },
+      {
+        "src": "classifier_0",
+        "dst": "classifier_1"
+      },
+      {
+        "src": "classifier_1",
+        "dst": "output"
+      },
+      {
+        "src": "fused_cbr_features_0_0",
+        "dst": "fused_cbr_features_1_conv_0_0"
+      },
+      {
+        "src": "fused_cbr_features_1_conv_0_0",
+        "dst": "folded_cb_features_1_conv_1"
+      },
+      {
+        "src": "fused_cbr_features_2_conv_0_0",
+        "dst": "fused_cbr_features_2_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_2_conv_1_0",
+        "dst": "folded_cb_features_2_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_3_conv_0_0",
+        "dst": "fused_cbr_features_3_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_3_conv_1_0",
+        "dst": "folded_cb_features_3_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_4_conv_0_0",
+        "dst": "fused_cbr_features_4_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_4_conv_1_0",
+        "dst": "folded_cb_features_4_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_5_conv_0_0",
+        "dst": "fused_cbr_features_5_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_5_conv_1_0",
+        "dst": "folded_cb_features_5_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_6_conv_0_0",
+        "dst": "fused_cbr_features_6_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_6_conv_1_0",
+        "dst": "folded_cb_features_6_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_7_conv_0_0",
+        "dst": "fused_cbr_features_7_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_7_conv_1_0",
+        "dst": "folded_cb_features_7_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_8_conv_0_0",
+        "dst": "fused_cbr_features_8_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_8_conv_1_0",
+        "dst": "folded_cb_features_8_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_9_conv_0_0",
+        "dst": "fused_cbr_features_9_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_9_conv_1_0",
+        "dst": "folded_cb_features_9_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_10_conv_0_0",
+        "dst": "fused_cbr_features_10_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_10_conv_1_0",
+        "dst": "folded_cb_features_10_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_11_conv_0_0",
+        "dst": "fused_cbr_features_11_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_11_conv_1_0",
+        "dst": "folded_cb_features_11_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_12_conv_0_0",
+        "dst": "fused_cbr_features_12_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_12_conv_1_0",
+        "dst": "folded_cb_features_12_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_13_conv_0_0",
+        "dst": "fused_cbr_features_13_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_13_conv_1_0",
+        "dst": "folded_cb_features_13_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_14_conv_0_0",
+        "dst": "fused_cbr_features_14_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_14_conv_1_0",
+        "dst": "folded_cb_features_14_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_15_conv_0_0",
+        "dst": "fused_cbr_features_15_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_15_conv_1_0",
+        "dst": "folded_cb_features_15_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_16_conv_0_0",
+        "dst": "fused_cbr_features_16_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_16_conv_1_0",
+        "dst": "folded_cb_features_16_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_17_conv_0_0",
+        "dst": "fused_cbr_features_17_conv_1_0"
+      },
+      {
+        "src": "fused_cbr_features_17_conv_1_0",
+        "dst": "folded_cb_features_17_conv_2"
+      },
+      {
+        "src": "fused_cbr_features_18_0",
+        "dst": "adaptive_avg_pool2d"
+      },
+      {
+        "src": "folded_cb_features_1_conv_1",
+        "dst": "fused_cbr_features_2_conv_0_0"
+      },
+      {
+        "src": "folded_cb_features_2_conv_2",
+        "dst": "add"
+      },
+      {
+        "src": "folded_cb_features_2_conv_2",
+        "dst": "fused_cbr_features_3_conv_0_0"
+      },
+      {
+        "src": "folded_cb_features_3_conv_2",
+        "dst": "add"
+      },
+      {
+        "src": "folded_cb_features_4_conv_2",
+        "dst": "add_1"
+      },
+      {
+        "src": "folded_cb_features_4_conv_2",
+        "dst": "fused_cbr_features_5_conv_0_0"
+      },
+      {
+        "src": "folded_cb_features_5_conv_2",
+        "dst": "add_1"
+      },
+      {
+        "src": "folded_cb_features_6_conv_2",
+        "dst": "add_2"
+      },
+      {
+        "src": "folded_cb_features_7_conv_2",
+        "dst": "add_3"
+      },
+      {
+        "src": "folded_cb_features_7_conv_2",
+        "dst": "fused_cbr_features_8_conv_0_0"
+      },
+      {
+        "src": "folded_cb_features_8_conv_2",
+        "dst": "add_3"
+      },
+      {
+        "src": "folded_cb_features_9_conv_2",
+        "dst": "add_4"
+      },
+      {
+        "src": "folded_cb_features_10_conv_2",
+        "dst": "add_5"
+      },
+      {
+        "src": "folded_cb_features_11_conv_2",
+        "dst": "add_6"
+      },
+      {
+        "src": "folded_cb_features_11_conv_2",
+        "dst": "fused_cbr_features_12_conv_0_0"
+      },
+      {
+        "src": "folded_cb_features_12_conv_2",
+        "dst": "add_6"
+      },
+      {
+        "src": "folded_cb_features_13_conv_2",
+        "dst": "add_7"
+      },
+      {
+        "src": "folded_cb_features_14_conv_2",
+        "dst": "add_8"
+      },
+      {
+        "src": "folded_cb_features_14_conv_2",
+        "dst": "fused_cbr_features_15_conv_0_0"
+      },
+      {
+        "src": "folded_cb_features_15_conv_2",
+        "dst": "add_8"
+      },
+      {
+        "src": "folded_cb_features_16_conv_2",
+        "dst": "add_9"
+      },
+      {
+        "src": "folded_cb_features_17_conv_2",
+        "dst": "fused_cbr_features_18_0"
+      }
+    ]
+  },
+  "metrics": {
+    "original_nodes": 155,
+    "original_edges": 164,
+    "optimized_nodes": 68,
+    "optimized_edges": 77,
+    "node_reduction_pct": 56.1,
+    "edge_reduction_pct": 53.0,
+    "fused_ops": 35,
+    "folded_ops": 17,
+    "hbm_rw_eliminated": 70,
+    "hbm_bandwidth_freed_bytes": 224788480,
+    "hbm_bandwidth_freed_human": "~224.8 MB",
+    "hbm_traffic_cut_pct": 21.3,
+    "est_throughput_gain_pct": 63.0,
+    "pass_results": [
+      {
+        "pass_name": "Conv-BN-ReLU Fusion",
+        "nodes_before": 155,
+        "nodes_after": 85,
+        "edges_before": 164,
+        "edges_after": 94,
+        "nodes_removed": 70,
+        "edges_removed": 70,
+        "notes": [
+          "Fused chain: fused_cbr_features_0_0",
+          "Fused chain: fused_cbr_features_1_conv_0_0",
+          "Fused chain: fused_cbr_features_2_conv_0_0",
+          "Fused chain: fused_cbr_features_2_conv_1_0",
+          "Fused chain: fused_cbr_features_3_conv_0_0",
+          "Fused chain: fused_cbr_features_3_conv_1_0",
+          "Fused chain: fused_cbr_features_4_conv_0_0",
+          "Fused chain: fused_cbr_features_4_conv_1_0",
+          "Fused chain: fused_cbr_features_5_conv_0_0",
+          "Fused chain: fused_cbr_features_5_conv_1_0"
+        ]
+      },
+      {
+        "pass_name": "Dead Node Elimination",
+        "nodes_before": 85,
+        "nodes_after": 85,
+        "edges_before": 94,
+        "edges_after": 94,
+        "nodes_removed": 0,
+        "edges_removed": 0,
+        "notes": [
+          "No dead nodes found \u2014 graph is fully connected \u2713"
+        ]
+      },
+      {
+        "pass_name": "Conv-BN Folding",
+        "nodes_before": 85,
+        "nodes_after": 68,
+        "edges_before": 94,
+        "edges_after": 77,
+        "nodes_removed": 17,
+        "edges_removed": 17,
+        "notes": [
+          "Folded Conv-BN: folded_cb_features_1_conv_1",
+          "Folded Conv-BN: folded_cb_features_2_conv_2",
+          "Folded Conv-BN: folded_cb_features_3_conv_2",
+          "Folded Conv-BN: folded_cb_features_4_conv_2",
+          "Folded Conv-BN: folded_cb_features_5_conv_2",
+          "Folded Conv-BN: folded_cb_features_6_conv_2",
+          "Folded Conv-BN: folded_cb_features_7_conv_2",
+          "Folded Conv-BN: folded_cb_features_8_conv_2",
+          "Folded Conv-BN: folded_cb_features_9_conv_2",
+          "Folded Conv-BN: folded_cb_features_10_conv_2"
+        ]
+      },
+      {
+        "pass_name": "Memory Footprint Analysis",
+        "nodes_before": 68,
+        "nodes_after": 68,
+        "edges_before": 77,
+        "edges_after": 77,
+        "nodes_removed": 0,
+        "edges_removed": 0,
+        "notes": [
+          "Peak live memory: 0.01 MB",
+          "Top-1 memory node: x (0.01 MB)",
+          "Top-2 memory node: add (0.01 MB)",
+          "Top-3 memory node: flatten (0.01 MB)",
+          "Top-4 memory node: classifier_0 (0.01 MB)",
+          "Top-5 memory node: adaptive_avg_pool2d (0.01 MB)"
+        ]
+      }
+    ]
+  },
+  "memory_analysis": {
+    "peak_live_mb": 0.01,
+    "peak_live_nodes": [
+      "x"
+    ],
+    "top_consumers": [
+      {
+        "node_id": "x",
+        "memory_mb": 0.01
+      },
+      {
+        "node_id": "add",
+        "memory_mb": 0.01
+      },
+      {
+        "node_id": "flatten",
+        "memory_mb": 0.01
+      },
+      {
+        "node_id": "classifier_0",
+        "memory_mb": 0.01
+      },
+      {
+        "node_id": "adaptive_avg_pool2d",
+        "memory_mb": 0.01
+      }
+    ]
+  }
+}
