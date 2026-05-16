@@ -18,6 +18,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import os
 import re
@@ -230,11 +231,25 @@ async def analyze_model(
             )
 
         model.eval()
-        sample_input = torch.randn(*input_shape)
+
+        # ── Two inputs: mini for ShapeProp, full for TorchScript ─────────────
+        # ShapeProp runs a full forward pass keeping ALL intermediate tensors
+        # live simultaneously. At 224×224, peak activation RAM for ResNet-34 is
+        # ~250 MB — which combined with model weights pushes Render's 512 MB
+        # free tier over the edge. A 32×32 input reduces that to ~5 MB (49× less).
+        sp_shape = list(input_shape)
+        if len(sp_shape) >= 4:
+            sp_shape[-2] = min(sp_shape[-2], 32)
+            sp_shape[-1] = min(sp_shape[-1], 32)
+        sp_input    = torch.zeros(*sp_shape)     # no grad needed for shape analysis
+        trace_input = torch.randn(*input_shape)  # full size, only for TorchScript
 
         # ── Step 2: Extract original DAG ─────────────────────────────────────
-        dag = extract_dag(model, sample_input, graph_name=display)
+        with torch.no_grad():
+            dag = extract_dag(model, sp_input, graph_name=display)
         original_raw = dag.to_json()
+        del dag, sp_input  # free activation memory immediately
+        gc.collect()
 
         original_n = original_raw["metadata"]["num_nodes"]
         original_e = original_raw["metadata"]["num_edges"]
@@ -297,7 +312,6 @@ async def analyze_model(
         memory = gs.metadata.get("memory_analysis", {})
 
         # ── Step 5: Export TorchScript .pt (compiled model — faster inference)
-        import gc
         safe_name = (display or "model").lower()
         safe_name = re.sub(r"[^a-z0-9]+", "_", safe_name).strip("_")
 
@@ -325,7 +339,7 @@ async def analyze_model(
             try:
                 # torch.jit.trace is safe; we skip optimize_for_inference (OOM risk).
                 with torch.no_grad():
-                    traced = torch.jit.trace(model, sample_input, strict=False)
+                    traced = torch.jit.trace(model, trace_input, strict=False)
 
                 pt_path = os.path.join(DOWNLOADS_DIR, pt_filename)
                 traced.save(pt_path)
@@ -345,7 +359,7 @@ async def analyze_model(
                 )
 
         # Free the model from RAM before building the (potentially large) JSON response
-        del model, sample_input
+        del model, trace_input
         gc.collect()
 
         # Export optimized graph JSON
