@@ -1,6 +1,6 @@
 # ⬡ PyTorch DAG Optimizer
 
-> **Data Structures Bonus Project** — CS Course, 2026
+> **Data Structures Bonus Project** — ECE Course, 2026
 
 An interactive web application that traces, visualizes, and **automatically optimizes** PyTorch neural network computation graphs using graph algorithms and operator fusion techniques.
 
