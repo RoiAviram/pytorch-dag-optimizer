@@ -107,6 +107,7 @@ def extract_dag(model: torch.nn.Module, sample_input: torch.Tensor,
             submodule = dict(gm.named_modules()).get(str(fx_node.target))
             if submodule is not None:
                 extra["module_class"] = type(submodule).__name__
+                extra["parameter_count"] = sum(p.numel() for p in submodule.parameters())
         if fx_node.kwargs:
             # Capture any kwargs that are JSON-serialisable primitives
             for k, v in fx_node.kwargs.items():
@@ -122,15 +123,22 @@ def extract_dag(model: torch.nn.Module, sample_input: torch.Tensor,
         )
         dag.add_node(dag_node)
 
-    # Pass 2: add edges (data-flow from each arg that is itself an fx.Node)
+    # Pass 2: add edges (data-flow from each arg that is itself an fx.Node, or is nested in a list/tuple/dict)
+    def _add_edges_recursive(arg: Any, dst_name: str) -> None:
+        if isinstance(arg, torch.fx.Node):
+            dag.add_edge(arg.name, dst_name)
+        elif isinstance(arg, (list, tuple)):
+            for item in arg:
+                _add_edges_recursive(item, dst_name)
+        elif isinstance(arg, dict):
+            for item in arg.values():
+                _add_edges_recursive(item, dst_name)
+
     for fx_node in gm.graph.nodes:
         for arg in fx_node.args:
-            if isinstance(arg, torch.fx.Node):
-                dag.add_edge(arg.name, fx_node.name)
-        # Some ops pass node-valued kwargs too (e.g., some concat-like ops)
+            _add_edges_recursive(arg, fx_node.name)
         for v in fx_node.kwargs.values():
-            if isinstance(v, torch.fx.Node):
-                dag.add_edge(v.name, fx_node.name)
+            _add_edges_recursive(v, fx_node.name)
 
     print(f"[Extractor] DAG built: {dag}")
     return dag

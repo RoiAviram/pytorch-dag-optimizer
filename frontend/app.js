@@ -25,13 +25,53 @@ const COLORS = {
 
 // ── State ──────────────────────────────────────────────────────────────────
 
-let network      = null;
-let nodesDS      = null;
-let edgesDS      = null;
-let activeKey    = null;     // 'original' | 'optimized'
+let networks = {
+  single: null,
+  original: null,
+  optimized: null
+};
+let datasets = {
+  single: { nodes: null, edges: null },
+  original: { nodes: null, edges: null },
+  optimized: { nodes: null, edges: null }
+};
+let nodesDS      = null;     // Compatibility fallback
+let edgesDS      = null;     // Compatibility fallback
+let activeKey    = null;     // 'original' | 'optimized' | 'split'
 let selectedFile = null;     // File object from drag-and-drop or browse
 let analysisData = null;     // Full API response (both graphs + metrics)
 let downloadUrls = null;     // { pt_url, json_url } from last analysis
+
+// ── Node explanations dictionary ──────────────────────────────────────────
+const OP_DESCRIPTIONS = {
+  'placeholder': 'Input placeholder representing the entry tensor(s) to the network (e.g. image batches).',
+  'output': 'Output node representing the final output tensor(s) produced by the network.',
+  'Conv2d': 'Applies a 2D convolution over an input signal. Extracts spatial features like edges, texture, and shapes.',
+  'BatchNorm2d': 'Applies Batch Normalization over a 4D input. Stabilizes training, speeds up convergence, and acts as regularizer.',
+  'ReLU': 'Applies the Rectified Linear Unit activation function element-wise. Introduces non-linearity to the network.',
+  'ReLU6': 'Applies a saturated ReLU (capped at 6) element-wise. Prevents activations from growing too large in low-precision regimes.',
+  'Linear': 'Applies a linear (fully-connected) transformation: y = xA^T + b. Commonly used for final classification layers.',
+  'MaxPool2d': 'Applies a 2D max pooling. Downsamples spatial dimensions by taking the maximum value, reducing computation cost.',
+  'AdaptiveAvgPool2d': 'Applies a 2D adaptive average pooling. Downsamples feature maps to a fixed size while retaining global context.',
+  'add': 'Performs element-wise addition. Essential for combining residual branch outputs in skip-connections.',
+  'operator.add': 'Performs element-wise addition. Essential for combining residual branch outputs in skip-connections.',
+  'flatten': 'Flattens a contiguous range of dimensions. Prepares high-dimensional feature maps for a Linear classifier.',
+  'torch.flatten': 'Flattens a contiguous range of dimensions. Prepares high-dimensional feature maps for a Linear classifier.',
+  'Fused_Conv_BN_ReLU': 'Single-kernel Conv+BN+ReLU. BN weights are folded and activation is in-register, avoiding extra HBM transfers.',
+  'Folded_Conv_BN': 'Folded Conv+BN operator. BatchNorm parameters are mathematically absorbed into Conv weights for faster inference.'
+};
+
+function getNodeExplanation(n) {
+  const opClass = n.kwargs?.module_class;
+  if (opClass && OP_DESCRIPTIONS[opClass]) return OP_DESCRIPTIONS[opClass];
+  if (OP_DESCRIPTIONS[n.name]) return OP_DESCRIPTIONS[n.name];
+  if (OP_DESCRIPTIONS[n.op_type]) return OP_DESCRIPTIONS[n.op_type];
+  if (n.name && n.name.includes('add')) return OP_DESCRIPTIONS['add'];
+  if (n.name && n.name.includes('flatten')) return OP_DESCRIPTIONS['flatten'];
+  if (n.op_type === 'fused_op') return OP_DESCRIPTIONS['Fused_Conv_BN_ReLU'];
+  if (n.op_type === 'folded_op') return OP_DESCRIPTIONS['Folded_Conv_BN'];
+  return 'A computation step in the PyTorch graph execution.';
+}
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
@@ -65,6 +105,18 @@ function fusedGlow(node) {
 // ── Graph builder ──────────────────────────────────────────────────────────
 
 function buildDatasets(graphData) {
+  const nodeMap = new Map(graphData.nodes.map(n => [n.node_id, n]));
+  const predShapesMap = new Map();
+  for (const edge of graphData.edges) {
+    if (!predShapesMap.has(edge.dst)) {
+      predShapesMap.set(edge.dst, []);
+    }
+    const srcNode = nodeMap.get(edge.src);
+    if (srcNode && srcNode.output_shape) {
+      predShapesMap.get(edge.dst).push(srcNode.output_shape);
+    }
+  }
+
   const visNodes = graphData.nodes.map(n => {
     const clr  = nodeColour(n);
     const isFused  = n.op_type === 'fused_op';
@@ -86,10 +138,12 @@ function buildDatasets(graphData) {
       label = `${n.name}\n${n.op_type}`;
     }
 
+    const inputShapes = predShapesMap.get(n.node_id) || [];
+
     return {
       id:    n.node_id,
       label,
-      title: buildTooltip(n),
+      title: buildTooltip(n, inputShapes),
       shape: isFused ? 'hexagon' : isFolded ? 'hexagon' : (n.op_type === 'placeholder' ? 'diamond' : 'box'),
       color: {
         background:  clr.bg,
@@ -125,22 +179,114 @@ function buildDatasets(graphData) {
   return { visNodes, visEdges };
 }
 
-function buildTooltip(n) {
-  const shape = n.output_shape ? n.output_shape.join(' × ') : 'N/A';
-  const klass = n.kwargs?.module_class ?? '';
+function formatShape(shape) {
+  if (!shape || !Array.isArray(shape) || shape.length === 0) return 'N/A';
+  return shape.join(' × ');
+}
+
+function buildTooltip(n, inputShapes) {
+  const outputShapeStr = formatShape(n.output_shape);
+  const inputShapesStr = inputShapes.length > 0
+    ? inputShapes.map(s => formatShape(s)).join(' | ')
+    : 'N/A';
+
+  let opDisplay = '';
+  let opLabel = 'Operator';
+  if (n.op_type === 'call_module') {
+    opLabel = 'Layer Type';
+    opDisplay = n.kwargs?.module_class ?? 'nn.Module';
+  } else if (n.op_type === 'call_function' || n.op_type === 'call_method') {
+    opLabel = 'PyTorch Op';
+    opDisplay = n.name;
+  } else if (n.op_type === 'fused_op') {
+    opLabel = 'Fused Op';
+    opDisplay = 'Fused Conv-BN-ReLU';
+  } else if (n.op_type === 'folded_op') {
+    opLabel = 'Folded Op';
+    opDisplay = 'Folded Conv-BN';
+  } else {
+    opLabel = 'Op Type';
+    opDisplay = n.op_type;
+  }
+
+  const paramCount = n.kwargs?.parameter_count;
+  const paramStr = (paramCount !== undefined && paramCount > 0)
+    ? paramCount.toLocaleString()
+    : null;
+
+  const memMb = n.kwargs?.memory_mb;
+  const memStr = (memMb !== undefined)
+    ? `${memMb.toFixed(4)} MB`
+    : null;
+
+  const explanation = getNodeExplanation(n);
   const fused = n.kwargs?.fused_from;
 
-  let html = `<div style="
-      background:#0f172a; border:1px solid #334155; border-radius:8px;
-      padding:10px 14px; font-family:'JetBrains Mono',monospace;
-      font-size:11px; color:#cbd5e1; max-width:260px; line-height:1.7;">
-    <b style="color:#e2e8f0;font-size:12px">${n.name}</b><br/>
-    <span style="color:#64748b">op_type: </span><span style="color:#818cf8">${n.op_type}</span><br/>
-    <span style="color:#64748b">shape:   </span><span style="color:#a5f3fc">${shape}</span>`;
-  if (klass) html += `<br/><span style="color:#64748b">class:   </span><span>${klass}</span>`;
-  if (fused) html += `<br/><span style="color:#64748b">fused:   </span><span style="color:#00ffc8">${fused.join(' + ')}</span>`;
-  html += '</div>';
-  return html;
+  let html = `
+    <b style="color:#ffffff; font-size:12px; border-bottom:1px solid #334155; display:block; padding-bottom:6px; margin-bottom:8px;">${n.node_id}</b>
+    
+    <div style="margin-bottom: 6px; color:#94a3b8; line-height: 1.5; font-style: italic; white-space: normal; word-break: break-word;">
+      ${explanation}
+    </div>
+    
+    <div style="margin-bottom: 4px; white-space: normal;">
+      <span style="color:#64748b">${opLabel}: </span>
+      <span style="color:#818cf8; font-weight:600">${opDisplay}</span>
+    </div>`;
+
+  if (n.op_type !== 'placeholder' && n.op_type !== 'output') {
+    html += `
+    <div style="margin-bottom: 4px; white-space: normal;">
+      <span style="color:#64748b">Inputs: </span>
+      <span style="color:#a5f3fc">${inputShapesStr}</span>
+    </div>`;
+  }
+
+  html += `
+    <div style="margin-bottom: 4px; white-space: normal;">
+      <span style="color:#64748b">Output: </span>
+      <span style="color:#a5f3fc">${outputShapeStr}</span>
+    </div>`;
+
+  if (paramStr) {
+    html += `
+    <div style="margin-bottom: 4px; white-space: normal;">
+      <span style="color:#64748b">Parameters: </span>
+      <span style="color:#f59e0b; font-weight:600">${paramStr}</span>
+    </div>`;
+  }
+
+  if (memStr) {
+    html += `
+    <div style="margin-bottom: 4px; white-space: normal;">
+      <span style="color:#64748b">Act. Memory: </span>
+      <span style="color:#f472b6">${memStr}</span>
+    </div>`;
+  }
+
+  if (fused) {
+    html += `
+    <div style="margin-top: 8px; padding-top: 6px; border-top:1px dashed #334155; white-space: normal;">
+      <span style="color:#64748b; display:block; margin-bottom:2px;">Fused Nodes:</span>
+      <span style="color:#00ffc8">${fused.join(' → ')}</span>
+    </div>`;
+  }
+
+  const container = document.createElement('div');
+  container.style.background = '#0f172a';
+  container.style.border = '1px solid #334155';
+  container.style.borderRadius = '8px';
+  container.style.padding = '12px 16px';
+  container.style.fontFamily = "'JetBrains Mono', monospace";
+  container.style.fontSize = '11px';
+  container.style.color = '#cbd5e1';
+  container.style.maxWidth = '280px';
+  container.style.lineHeight = '1.6';
+  container.style.whiteSpace = 'normal';
+  container.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+  container.innerHTML = html;
+
+  return container;
 }
 
 // ── Metrics sidebar ────────────────────────────────────────────────────────
@@ -238,39 +384,77 @@ function renderPipeline(passResults) {
 
 // ── Node click handler ─────────────────────────────────────────────────────
 
+function findNodeInAnalysisData(nodeId) {
+  if (!analysisData) return null;
+  let node = analysisData.optimized_graph.nodes.find(n => n.node_id === nodeId);
+  if (node) return node;
+  return analysisData.original_graph.nodes.find(n => n.node_id === nodeId);
+}
+
 function showNodeInfo(nodeId) {
-  const nodeData = nodesDS.get(nodeId);
-  if (!nodeData) return;
-  const n = nodeData._raw;
+  const n = findNodeInAnalysisData(nodeId);
   if (!n) return;
 
+  let inputShapesStr = 'N/A';
+  const activeGraph = (activeKey === 'original')
+    ? analysisData.original_graph
+    : analysisData.optimized_graph;
+
+  const preds = activeGraph.edges.filter(e => e.dst === nodeId).map(e => e.src);
+  if (preds.length > 0) {
+    const predShapes = preds.map(pId => {
+      const predNode = activeGraph.nodes.find(node => node.node_id === pId);
+      return predNode && predNode.output_shape ? formatShape(predNode.output_shape) : null;
+    }).filter(s => s !== null);
+    if (predShapes.length > 0) {
+      inputShapesStr = predShapes.join(' | ');
+    }
+  }
+
   const isFused = n.op_type === 'fused_op' || n.op_type === 'folded_op';
-  const shape   = n.output_shape ? `[${n.output_shape.join(', ')}]` : 'N/A';
-  const klass   = n.kwargs?.module_class ?? '—';
-  const fused   = n.kwargs?.fused_from;
+  const outputShapeStr = n.output_shape ? `[${n.output_shape.join(', ')}]` : 'N/A';
+
+  let opDisplay = n.op_type;
+  if (n.op_type === 'call_module') opDisplay = n.kwargs?.module_class ?? 'nn.Module';
+  else if (n.op_type === 'call_function' || n.op_type === 'call_method') opDisplay = n.name;
+  else if (n.op_type === 'fused_op') opDisplay = 'Fused_Conv_BN_ReLU';
+  else if (n.op_type === 'folded_op') opDisplay = 'Folded_Conv_BN';
+
+  const paramCount = n.kwargs?.parameter_count;
+  const paramStr = (paramCount !== undefined && paramCount > 0) ? paramCount.toLocaleString() : '0';
+  const memMb = n.kwargs?.memory_mb;
+  const memStr = (memMb !== undefined) ? `${memMb.toFixed(4)} MB` : 'N/A';
+  const explanation = getNodeExplanation(n);
 
   let html = `
-    <div class="ni-row"><span class="ni-key">id:</span><span class="ni-val ${isFused ? 'ni-fused' : ''}">${n.node_id}</span></div>
-    <div class="ni-row"><span class="ni-key">op:</span><span class="ni-val">${n.op_type}</span></div>
-    <div class="ni-row"><span class="ni-key">name:</span><span class="ni-val">${n.name}</span></div>
-    <div class="ni-row"><span class="ni-key">shape:</span><span class="ni-val">${shape}</span></div>
-    <div class="ni-row"><span class="ni-key">class:</span><span class="ni-val">${klass}</span></div>
+    <div class="ni-row" style="margin-bottom: 8px; color:#94a3b8; line-height: 1.4; font-style: italic; border-bottom: 1px solid rgba(255,255,255,.05); padding-bottom: 6px;">
+      ${explanation}
+    </div>
+    <div class="ni-row"><span class="ni-key">Node ID:</span><span class="ni-val ${isFused ? 'ni-fused' : ''}">${n.node_id}</span></div>
+    <div class="ni-row"><span class="ni-key">Op/Class:</span><span class="ni-val" style="color:#818cf8; font-weight:600">${opDisplay}</span></div>
+    <div class="ni-row"><span class="ni-key">Target/Name:</span><span class="ni-val">${n.name}</span></div>
+    <div class="ni-row"><span class="ni-key">Input Shapes:</span><span class="ni-val" style="color:#a5f3fc">${inputShapesStr}</span></div>
+    <div class="ni-row"><span class="ni-key">Output Shape:</span><span class="ni-val" style="color:#a5f3fc">${outputShapeStr}</span></div>
+    <div class="ni-row"><span class="ni-key">Parameters:</span><span class="ni-val" style="color:#f59e0b">${paramStr}</span></div>
+    <div class="ni-row"><span class="ni-key">Act. Memory:</span><span class="ni-val" style="color:#f472b6">${memStr}</span></div>
   `;
+
+  const fused = n.kwargs?.fused_from;
   if (fused) {
-    html += `<div class="ni-row" style="flex-direction:column;gap:2px">
-      <span class="ni-key">fused from:</span>
-      ${fused.map(f => `<span class="ni-val ni-fused">• ${f}</span>`).join('')}
+    html += `<div class="ni-row" style="flex-direction:column;gap:2px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">
+      <span class="ni-key">Fused from:</span>
+      ${fused.map(f => `<span class="ni-val ni-fused" style="font-size:10px">• ${f}</span>`).join('')}
     </div>`;
   }
   if (n.kwargs?.fusion_notes) {
     html += `<div class="ni-row" style="flex-direction:column;gap:4px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">
-      <span class="ni-key">notes:</span>
+      <span class="ni-key">Fusion Notes:</span>
       <span style="color:#94a3b8;font-size:10px;line-height:1.5">${n.kwargs.fusion_notes}</span>
     </div>`;
   }
   if (n.kwargs?.fold_notes) {
     html += `<div class="ni-row" style="flex-direction:column;gap:4px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">
-      <span class="ni-key">notes:</span>
+      <span class="ni-key">Fold Notes:</span>
       <span style="color:#94a3b8;font-size:10px;line-height:1.5">${n.kwargs.fold_notes}</span>
     </div>`;
   }
@@ -281,23 +465,25 @@ function showNodeInfo(nodeId) {
 
 // ── Graph renderer ─────────────────────────────────────────────────────────
 
-function renderGraph(graphData) {
+function renderGraph(graphData, containerId, networkKey) {
   const { visNodes, visEdges } = buildDatasets(graphData);
 
-  nodesDS = new vis.DataSet(visNodes);
-  edgesDS = new vis.DataSet(visEdges);
+  const localNodesDS = new vis.DataSet(visNodes);
+  const localEdgesDS = new vis.DataSet(visEdges);
 
-  const container = el('graph-canvas');
+  datasets[networkKey] = { nodes: localNodesDS, edges: localEdgesDS };
+
+  const container = el(containerId);
 
   const options = {
     layout: {
       hierarchical: {
         enabled:          true,
-        direction:        'UD',
+        direction:        'LR',
         sortMethod:       'directed',
-        levelSeparation:  90,
-        nodeSpacing:      120,
-        treeSpacing:      140,
+        levelSeparation:  150,
+        nodeSpacing:      80,
+        treeSpacing:      100,
         blockShifting:    true,
         edgeMinimization: true,
         parentCentralization: true,
@@ -321,13 +507,15 @@ function renderGraph(graphData) {
     },
   };
 
-  if (network) {
-    network.destroy();
+  if (networks[networkKey]) {
+    networks[networkKey].destroy();
   }
-  network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, options);
+  const networkInstance = new vis.Network(container, { nodes: localNodesDS, edges: localEdgesDS }, options);
+  networks[networkKey] = networkInstance;
 
-  network.on('click', params => {
+  networkInstance.on('click', params => {
     if (params.nodes.length > 0) {
+      nodesDS = datasets[networkKey].nodes;
       showNodeInfo(params.nodes[0]);
       el('canvas-hint').style.display = 'none';
     } else {
@@ -337,8 +525,8 @@ function renderGraph(graphData) {
   });
 
   // Fit after stabilization
-  network.once('afterDrawing', () => {
-    network.fit({ animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
+  networkInstance.once('afterDrawing', () => {
+    networkInstance.fit({ animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
   });
 }
 
@@ -482,9 +670,9 @@ async function analyzeModel() {
     el('tag-original').textContent  = `${data.metrics.original_nodes} nodes`;
     el('tag-optimized').textContent = `${data.metrics.optimized_nodes} nodes`;
 
-    // ── Render the optimized graph by default ────────────────────────────
+    // ── Render the split graph by default ────────────────────────────
     activeKey = null;
-    loadGraph('optimized');
+    loadGraph('split');
 
     // ── Update all metrics from API response ────────────────────────────
     updateMetricsFromAPI(data.metrics);
@@ -517,18 +705,20 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 // ── Graph loader (now reads from analysisData in memory) ───────────────────
 
 async function loadGraph(key) {
-  if (key === activeKey && network) return;
+  if (key === activeKey && (key === 'split' ? (networks.original && networks.optimized) : networks.single)) return;
   activeKey = key;
 
   // Button state
+  const splitBtn = el('btn-split');
+  if (splitBtn) splitBtn.classList.toggle('btn-active', key === 'split');
   el('btn-original').classList.toggle('btn-active',  key === 'original');
   el('btn-optimized').classList.toggle('btn-active', key === 'optimized');
 
   if (!analysisData) return;
 
-  const graphData = key === 'original'
-    ? analysisData.original_graph
-    : analysisData.optimized_graph;
+  // Show/hide split canvas
+  el('graph-canvas').style.display = (key === 'split') ? 'none' : 'block';
+  el('graph-canvas-split').style.display = (key === 'split') ? 'flex' : 'none';
 
   const overlay = el('loading-overlay');
   overlay.style.display = 'flex';
@@ -540,8 +730,17 @@ async function loadGraph(key) {
   el('status-badge').style.color = '#f59e0b';
 
   try {
-    renderGraph(graphData);
-    updateMetricsForGraph(graphData, key);
+    if (key === 'split') {
+      renderGraph(analysisData.original_graph, 'graph-canvas-original', 'original');
+      renderGraph(analysisData.optimized_graph, 'graph-canvas-optimized', 'optimized');
+      updateMetricsForGraph(analysisData.optimized_graph, 'optimized');
+    } else {
+      const graphData = key === 'original'
+        ? analysisData.original_graph
+        : analysisData.optimized_graph;
+      renderGraph(graphData, 'graph-canvas', 'single');
+      updateMetricsForGraph(graphData, key);
+    }
 
     el('status-badge').textContent = '● READY';
     el('status-badge').style.color = '#4ade80';

@@ -34,7 +34,7 @@ from src.optimizer_passes import (
     PassManager,
 )
 
-# ── Models to pre-compute (3 diverse architectures) ──────────────────────────
+# ── Models to pre-compute (2 diverse architectures) ──────────────────────────
 MODELS = {
     "resnet18": {
         "display_name": "ResNet-18",
@@ -47,12 +47,6 @@ MODELS = {
         "factory":      lambda: tv_models.mobilenet_v2(weights=None),
         "input_shape":  [1, 3, 224, 224],
         "description":  "Inverted-residual mobile architecture, 3.4 M params",
-    },
-    "squeezenet1_0": {
-        "display_name": "SqueezeNet 1.0",
-        "factory":      lambda: tv_models.squeezenet1_0(weights=None),
-        "input_shape":  [1, 3, 224, 224],
-        "description":  "Compact fire-module architecture, 1.2 M params",
     },
 }
 

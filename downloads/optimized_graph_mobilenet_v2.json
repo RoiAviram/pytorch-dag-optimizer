@@ -1,7 +1,7 @@
 {
   "_export_info": {
     "tool": "PyTorch DAG Optimizer",
-    "exported_at": "2026-05-16T10:22:51Z",
+    "exported_at": "2026-06-04T08:30:13Z",
     "description": "Optimized computation graph \u2014 topologically sorted via Kahn's BFS with fused/folded operators."
   },
   "model_name": "MobileNet V2",
@@ -10,7 +10,7 @@
       "graph_name": "MobileNet V2 (Optimized)",
       "num_nodes": 68,
       "num_edges": 77,
-      "created_at": "2026-05-16T10:22:51Z",
+      "created_at": "2026-06-04T08:30:13Z",
       "memory_analysis": {
         "peak_live_mb": 0.01,
         "peak_live_nodes": [
@@ -39,7 +39,7 @@
           }
         ]
       },
-      "optimized_at": "2026-05-16T10:22:51Z"
+      "optimized_at": "2026-06-04T08:30:13Z"
     },
     "nodes": [
       {
@@ -232,6 +232,7 @@
         ],
         "kwargs": {
           "module_class": "Dropout",
+          "parameter_count": 0,
           "memory_mb": 0.0051
         }
       },
@@ -245,6 +246,7 @@
         ],
         "kwargs": {
           "module_class": "Linear",
+          "parameter_count": 1281000,
           "memory_mb": 0.004
         }
       },
@@ -283,6 +285,7 @@
             16,
             16
           ],
+          "parameter_count": 864,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -309,6 +312,7 @@
             16,
             16
           ],
+          "parameter_count": 288,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -335,6 +339,7 @@
             16,
             16
           ],
+          "parameter_count": 1536,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -361,6 +366,7 @@
             8,
             8
           ],
+          "parameter_count": 864,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -387,6 +393,7 @@
             8,
             8
           ],
+          "parameter_count": 3456,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -413,6 +420,7 @@
             8,
             8
           ],
+          "parameter_count": 1296,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -439,6 +447,7 @@
             8,
             8
           ],
+          "parameter_count": 3456,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -465,6 +474,7 @@
             4,
             4
           ],
+          "parameter_count": 1296,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -491,6 +501,7 @@
             4,
             4
           ],
+          "parameter_count": 6144,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -517,6 +528,7 @@
             4,
             4
           ],
+          "parameter_count": 1728,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -543,6 +555,7 @@
             4,
             4
           ],
+          "parameter_count": 6144,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -569,6 +582,7 @@
             4,
             4
           ],
+          "parameter_count": 1728,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -595,6 +609,7 @@
             4,
             4
           ],
+          "parameter_count": 6144,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -621,6 +636,7 @@
             2,
             2
           ],
+          "parameter_count": 1728,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -647,6 +663,7 @@
             2,
             2
           ],
+          "parameter_count": 24576,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -673,6 +690,7 @@
             2,
             2
           ],
+          "parameter_count": 3456,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -699,6 +717,7 @@
             2,
             2
           ],
+          "parameter_count": 24576,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -725,6 +744,7 @@
             2,
             2
           ],
+          "parameter_count": 3456,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -751,6 +771,7 @@
             2,
             2
           ],
+          "parameter_count": 24576,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -777,6 +798,7 @@
             2,
             2
           ],
+          "parameter_count": 3456,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -803,6 +825,7 @@
             2,
             2
           ],
+          "parameter_count": 24576,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -829,6 +852,7 @@
             2,
             2
           ],
+          "parameter_count": 3456,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -855,6 +879,7 @@
             2,
             2
           ],
+          "parameter_count": 55296,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -881,6 +906,7 @@
             2,
             2
           ],
+          "parameter_count": 5184,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -907,6 +933,7 @@
             2,
             2
           ],
+          "parameter_count": 55296,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -933,6 +960,7 @@
             2,
             2
           ],
+          "parameter_count": 5184,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -959,6 +987,7 @@
             2,
             2
           ],
+          "parameter_count": 55296,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -985,6 +1014,7 @@
             1,
             1
           ],
+          "parameter_count": 5184,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -1011,6 +1041,7 @@
             1,
             1
           ],
+          "parameter_count": 153600,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -1037,6 +1068,7 @@
             1,
             1
           ],
+          "parameter_count": 8640,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -1063,6 +1095,7 @@
             1,
             1
           ],
+          "parameter_count": 153600,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -1089,6 +1122,7 @@
             1,
             1
           ],
+          "parameter_count": 8640,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -1115,6 +1149,7 @@
             1,
             1
           ],
+          "parameter_count": 153600,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -1141,6 +1176,7 @@
             1,
             1
           ],
+          "parameter_count": 8640,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -1167,6 +1203,7 @@
             1,
             1
           ],
+          "parameter_count": 409600,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -1186,6 +1223,7 @@
             "features_1_conv_1",
             "features_1_conv_2"
           ],
+          "parameter_count": 512,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1205,6 +1243,7 @@
             "features_2_conv_2",
             "features_2_conv_3"
           ],
+          "parameter_count": 2304,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1224,6 +1263,7 @@
             "features_3_conv_2",
             "features_3_conv_3"
           ],
+          "parameter_count": 3456,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1243,6 +1283,7 @@
             "features_4_conv_2",
             "features_4_conv_3"
           ],
+          "parameter_count": 4608,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1262,6 +1303,7 @@
             "features_5_conv_2",
             "features_5_conv_3"
           ],
+          "parameter_count": 6144,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1281,6 +1323,7 @@
             "features_6_conv_2",
             "features_6_conv_3"
           ],
+          "parameter_count": 6144,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1300,6 +1343,7 @@
             "features_7_conv_2",
             "features_7_conv_3"
           ],
+          "parameter_count": 12288,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1319,6 +1363,7 @@
             "features_8_conv_2",
             "features_8_conv_3"
           ],
+          "parameter_count": 24576,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1338,6 +1383,7 @@
             "features_9_conv_2",
             "features_9_conv_3"
           ],
+          "parameter_count": 24576,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1357,6 +1403,7 @@
             "features_10_conv_2",
             "features_10_conv_3"
           ],
+          "parameter_count": 24576,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1376,6 +1423,7 @@
             "features_11_conv_2",
             "features_11_conv_3"
           ],
+          "parameter_count": 36864,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1395,6 +1443,7 @@
             "features_12_conv_2",
             "features_12_conv_3"
           ],
+          "parameter_count": 55296,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1414,6 +1463,7 @@
             "features_13_conv_2",
             "features_13_conv_3"
           ],
+          "parameter_count": 55296,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1433,6 +1483,7 @@
             "features_14_conv_2",
             "features_14_conv_3"
           ],
+          "parameter_count": 92160,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1452,6 +1503,7 @@
             "features_15_conv_2",
             "features_15_conv_3"
           ],
+          "parameter_count": 153600,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1471,6 +1523,7 @@
             "features_16_conv_2",
             "features_16_conv_3"
           ],
+          "parameter_count": 153600,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -1490,6 +1543,7 @@
             "features_17_conv_2",
             "features_17_conv_3"
           ],
+          "parameter_count": 307200,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       }

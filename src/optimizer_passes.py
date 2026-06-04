@@ -156,6 +156,7 @@ class ConvBNReLUFusionPass(OptimizerPass):
         ext_succs     = gs.successors(relu_id)
         out_shape     = gs.nodes[relu_id].get("output_shape")
         conv_shape    = gs.nodes[conv_id].get("output_shape")
+        param_count   = gs.nodes[conv_id].get("kwargs", {}).get("parameter_count", 0)
 
         fused_node = {
             "node_id":      fused_id,
@@ -166,6 +167,7 @@ class ConvBNReLUFusionPass(OptimizerPass):
                 "module_class": "Fused_Conv_BN_ReLU",
                 "fused_from":   [conv_id, bn_id, relu_id],
                 "conv_shape":   conv_shape,
+                "parameter_count": param_count,
                 "fusion_notes": (
                     "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. "
                     "Activation applied in-register — no extra HBM round-trip."
@@ -304,6 +306,7 @@ class ConvBNFoldingPass(OptimizerPass):
         ext_preds  = gs.predecessors(conv_id)
         ext_succs  = gs.successors(bn_id)
         out_shape  = gs.nodes[bn_id].get("output_shape")
+        param_count = gs.nodes[conv_id].get("kwargs", {}).get("parameter_count", 0)
 
         folded_node = {
             "node_id":      folded_id,
@@ -313,6 +316,7 @@ class ConvBNFoldingPass(OptimizerPass):
             "kwargs": {
                 "module_class": "Folded_Conv_BN",
                 "fused_from":   [conv_id, bn_id],
+                "parameter_count": param_count,
                 "fold_notes": (
                     "BN scale/bias/mean/var mathematically absorbed into Conv "
                     "weight & bias at inference time. Removes BN forward pass entirely."

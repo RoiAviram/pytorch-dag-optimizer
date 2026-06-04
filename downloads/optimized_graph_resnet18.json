@@ -1,7 +1,7 @@
 {
   "_export_info": {
     "tool": "PyTorch DAG Optimizer",
-    "exported_at": "2026-05-16T10:22:51Z",
+    "exported_at": "2026-06-04T08:30:13Z",
     "description": "Optimized computation graph \u2014 topologically sorted via Kahn's BFS with fused/folded operators."
   },
   "model_name": "ResNet-18",
@@ -10,7 +10,7 @@
       "graph_name": "ResNet-18 (Optimized)",
       "num_nodes": 42,
       "num_edges": 49,
-      "created_at": "2026-05-16T10:22:51Z",
+      "created_at": "2026-06-04T08:30:13Z",
       "memory_analysis": {
         "peak_live_mb": 0.03,
         "peak_live_nodes": [
@@ -40,7 +40,7 @@
           }
         ]
       },
-      "optimized_at": "2026-05-16T10:22:51Z"
+      "optimized_at": "2026-06-04T08:30:13Z"
     },
     "nodes": [
       {
@@ -69,6 +69,7 @@
         ],
         "kwargs": {
           "module_class": "MaxPool2d",
+          "parameter_count": 0,
           "memory_mb": 0.0164
         }
       },
@@ -98,6 +99,7 @@
         ],
         "kwargs": {
           "module_class": "ReLU",
+          "parameter_count": 0,
           "memory_mb": 0.0164
         }
       },
@@ -127,6 +129,7 @@
         ],
         "kwargs": {
           "module_class": "ReLU",
+          "parameter_count": 0,
           "memory_mb": 0.0164
         }
       },
@@ -156,6 +159,7 @@
         ],
         "kwargs": {
           "module_class": "ReLU",
+          "parameter_count": 0,
           "memory_mb": 0.0082
         }
       },
@@ -185,6 +189,7 @@
         ],
         "kwargs": {
           "module_class": "ReLU",
+          "parameter_count": 0,
           "memory_mb": 0.0082
         }
       },
@@ -214,6 +219,7 @@
         ],
         "kwargs": {
           "module_class": "ReLU",
+          "parameter_count": 0,
           "memory_mb": 0.0041
         }
       },
@@ -243,6 +249,7 @@
         ],
         "kwargs": {
           "module_class": "ReLU",
+          "parameter_count": 0,
           "memory_mb": 0.0041
         }
       },
@@ -272,6 +279,7 @@
         ],
         "kwargs": {
           "module_class": "ReLU",
+          "parameter_count": 0,
           "memory_mb": 0.002
         }
       },
@@ -301,6 +309,7 @@
         ],
         "kwargs": {
           "module_class": "ReLU",
+          "parameter_count": 0,
           "memory_mb": 0.002
         }
       },
@@ -316,6 +325,7 @@
         ],
         "kwargs": {
           "module_class": "AdaptiveAvgPool2d",
+          "parameter_count": 0,
           "memory_mb": 0.002
         }
       },
@@ -341,6 +351,7 @@
         ],
         "kwargs": {
           "module_class": "Linear",
+          "parameter_count": 513000,
           "memory_mb": 0.004
         }
       },
@@ -379,6 +390,7 @@
             16,
             16
           ],
+          "parameter_count": 9408,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -405,6 +417,7 @@
             8,
             8
           ],
+          "parameter_count": 36864,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -431,6 +444,7 @@
             8,
             8
           ],
+          "parameter_count": 36864,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -457,6 +471,7 @@
             4,
             4
           ],
+          "parameter_count": 73728,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -483,6 +498,7 @@
             4,
             4
           ],
+          "parameter_count": 147456,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -509,6 +525,7 @@
             2,
             2
           ],
+          "parameter_count": 294912,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -535,6 +552,7 @@
             2,
             2
           ],
+          "parameter_count": 589824,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -561,6 +579,7 @@
             1,
             1
           ],
+          "parameter_count": 1179648,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -587,6 +606,7 @@
             1,
             1
           ],
+          "parameter_count": 2359296,
           "fusion_notes": "Single-kernel Conv+BN+ReLU. BN weights folded into Conv. Activation applied in-register \u2014 no extra HBM round-trip."
         }
       },
@@ -606,6 +626,7 @@
             "layer1_0_conv2",
             "layer1_0_bn2"
           ],
+          "parameter_count": 36864,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -625,6 +646,7 @@
             "layer1_1_conv2",
             "layer1_1_bn2"
           ],
+          "parameter_count": 36864,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -644,6 +666,7 @@
             "layer2_0_downsample_0",
             "layer2_0_downsample_1"
           ],
+          "parameter_count": 8192,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -663,6 +686,7 @@
             "layer2_0_conv2",
             "layer2_0_bn2"
           ],
+          "parameter_count": 147456,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -682,6 +706,7 @@
             "layer2_1_conv2",
             "layer2_1_bn2"
           ],
+          "parameter_count": 147456,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -701,6 +726,7 @@
             "layer3_0_downsample_0",
             "layer3_0_downsample_1"
           ],
+          "parameter_count": 32768,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -720,6 +746,7 @@
             "layer3_0_conv2",
             "layer3_0_bn2"
           ],
+          "parameter_count": 589824,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -739,6 +766,7 @@
             "layer3_1_conv2",
             "layer3_1_bn2"
           ],
+          "parameter_count": 589824,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -758,6 +786,7 @@
             "layer4_0_downsample_0",
             "layer4_0_downsample_1"
           ],
+          "parameter_count": 131072,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -777,6 +806,7 @@
             "layer4_0_conv2",
             "layer4_0_bn2"
           ],
+          "parameter_count": 2359296,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       },
@@ -796,6 +826,7 @@
             "layer4_1_conv2",
             "layer4_1_bn2"
           ],
+          "parameter_count": 2359296,
           "fold_notes": "BN scale/bias/mean/var mathematically absorbed into Conv weight & bias at inference time. Removes BN forward pass entirely."
         }
       }

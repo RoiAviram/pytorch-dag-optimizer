@@ -65,7 +65,7 @@ from src.optimizer_passes import (                         # noqa: E402
 )
 
 # ── Built-in model metadata (for /api/models listing) ────────────────────────
-# Only 3 models — chosen to fit comfortably within Render's 512 MB free tier.
+# Only 2 models — chosen to fit comfortably within Render's 512 MB free tier.
 
 BUILTIN_MODELS: dict[str, dict[str, Any]] = {
     "resnet18": {
@@ -77,11 +77,6 @@ BUILTIN_MODELS: dict[str, dict[str, Any]] = {
         "display_name": "MobileNet V2",
         "input_shape":  [1, 3, 224, 224],
         "description":  "Inverted-residual mobile architecture, 3.4 M params",
-    },
-    "squeezenet1_0": {
-        "display_name": "SqueezeNet 1.0",
-        "input_shape":  [1, 3, 224, 224],
-        "description":  "Compact fire-module architecture, 1.2 M params",
     },
 }
 

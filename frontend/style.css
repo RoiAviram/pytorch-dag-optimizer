@@ -456,7 +456,7 @@ body {
   align-items: center; justify-content: center;
   gap: 12px;
   z-index: 5;
-  pointer-events: none;
+  pointer-events: auto;
 }
 .welcome-icon {
   font-size: 64px;
@@ -681,3 +681,559 @@ body {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 4px; }
+
+/* ── Split Canvas Layout ────────────────────────────────────── */
+.split-canvas-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+.canvas-half {
+  flex: 1;
+  width: 100%;
+  height: 50%;
+  position: relative;
+  overflow: hidden;
+}
+.canvas-half:first-child {
+  border-bottom: 1px solid var(--border);
+}
+.canvas-half-header {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 5;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
+  background: rgba(11, 14, 23, 0.75);
+  backdrop-filter: blur(4px);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  pointer-events: none;
+}
+.half-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Compare Tag ────────────────────────────────────────────── */
+.compare-tag {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+
+/* ── Topological Sorting Panel ───────────────────────────────── */
+.topo-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.topo-info-section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 6px;
+}
+.topo-info-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.topo-info-subtitle {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+}
+.topo-info-text {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+.topo-info-text strong {
+  color: var(--text);
+}
+
+/* ── Enhanced Welcome Screen Styling ────────────────────────── */
+.canvas-welcome {
+  position: absolute; 
+  inset: 0;
+  display: flex; 
+  flex-direction: column;
+  align-items: center; 
+  justify-content: flex-start;
+  gap: 20px;
+  z-index: 5;
+  padding: 40px 24px 60px 24px; /* More bottom padding for breathing room */
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+/* Custom scrollbar for welcome screen to make it obvious */
+.canvas-welcome::-webkit-scrollbar {
+  width: 8px;
+}
+.canvas-welcome::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.canvas-welcome::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.45);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.canvas-welcome::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
+}
+
+.welcome-header-box {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0; /* Prevent browser from squishing the header */
+}
+.welcome-edu-container {
+  max-width: 950px;
+  width: 100%;
+  background: rgba(26, 34, 53, 0.45);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: welcomeFadeIn 0.6s ease-out;
+  margin-bottom: 20px;
+  flex-shrink: 0; /* Prevent browser from squishing the description card */
+  pointer-events: auto;
+}
+@keyframes welcomeFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.edu-main-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 10px;
+}
+.edu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .edu-grid, .edu-lifecycle-container {
+    grid-template-columns: 1fr;
+  }
+}
+.edu-card {
+  background: rgba(11, 14, 23, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: transform 0.2s, border-color 0.2s;
+  pointer-events: auto;
+}
+.edu-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+.edu-card-icon {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.edu-card-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.edu-card-text {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+.edu-card-text strong {
+  color: var(--text);
+}
+
+/* ── Lifecycle & JSON Section Styling ────────────────────────── */
+.edu-lifecycle-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.edu-lifecycle-box {
+  background: rgba(11, 14, 23, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: transform 0.2s, border-color 0.2s;
+  pointer-events: auto;
+}
+.edu-lifecycle-box:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+.edu-lifecycle-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.edu-lifecycle-text {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.edu-lifecycle-text strong {
+  color: var(--text);
+}
+
+/* ── Kahn's Algorithm — Branching Graph ────────────────── */
+.kahn-box-wide {
+  flex-basis: 100% !important;
+  max-width: 100% !important;
+}
+
+.kahn-graph {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  height: 180px;
+  margin: 10px auto 6px;
+}
+
+.kg-edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.kg-edge {
+  stroke: rgba(255,255,255,0.18);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.kg-skip {
+  stroke: var(--func);
+  stroke-dasharray: 5 3;
+  opacity: 0.5;
+}
+
+.kg-node {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  min-width: 42px;
+  text-align: center;
+  transition: all .4s ease;
+}
+.kg-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--mono);
+  color: var(--text-dim);
+}
+.kg-deg {
+  font-size: 8px;
+  font-family: var(--mono);
+  color: var(--func);
+  opacity: 0.7;
+  line-height: 1;
+}
+
+/* Node positions — forming the branching DAG shape */
+.kg-n-x    { left: 2%;   top: 42%; }
+.kg-n-conv { left: 22%;  top: 10%; }
+.kg-n-bn   { left: 42%;  top: 10%; }
+.kg-n-relu { left: 60%;  top: 10%; }
+.kg-n-add  { left: 68%;  top: 60%; }
+.kg-n-out  { left: 88%;  top: 42%; }
+
+.kg-skip-label {
+  position: absolute;
+  left: 30%;
+  top: 72%;
+  font-size: 8px;
+  font-family: var(--mono);
+  color: var(--func);
+  opacity: 0.55;
+  font-style: italic;
+  letter-spacing: 0.2px;
+}
+
+/* ── Kahn Step-by-Step Table ──────────────────────────────── */
+.kahn-steps {
+  margin-top: 10px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 9.5px;
+  font-family: var(--mono);
+}
+
+.ks-header {
+  display: flex;
+  background: rgba(99,102,241,0.1);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 5px 0;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 8.5px;
+}
+
+.ks-row {
+  display: flex;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text-dim);
+  line-height: 1.6;
+  animation: ksReveal 12s ease infinite;
+}
+.ks-row:last-child { border-bottom: none; }
+
+/* Staggered row reveal animation */
+.ks-r1 { animation-delay: 0s; }
+.ks-r2 { animation-delay: 1.5s; }
+.ks-r3 { animation-delay: 3.0s; }
+.ks-r4 { animation-delay: 4.5s; }
+.ks-r5 { animation-delay: 6.0s; }
+.ks-r6 { animation-delay: 7.5s; }
+
+@keyframes ksReveal {
+  0%, 5%    { background: transparent; }
+  8%, 16%   { background: rgba(99,102,241,0.08); }
+  22%, 100% { background: transparent; }
+}
+
+.ks-col {
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.ks-col-step   { width: 36px;  justify-content: center; font-weight: 700; color: var(--text); flex-shrink: 0; }
+.ks-col-queue  { width: 70px;  flex-shrink: 0; }
+.ks-col-action { flex: 1;      min-width: 0; font-family: var(--font); }
+.ks-col-result { width: auto;  flex-shrink: 0; justify-content: flex-end; }
+
+.ks-chip {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 600;
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.ks-chip-queued {
+  background: rgba(245,158,11,0.18);
+  border: 1px solid rgba(245,158,11,0.4);
+  color: var(--func);
+}
+.ks-chip-done {
+  background: rgba(74,222,128,0.12);
+  border: 1px solid rgba(74,222,128,0.3);
+  color: var(--success);
+}
+
+/* Kahn insight box */
+.kahn-insight {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(245,158,11,0.2);
+  background: rgba(245,158,11,0.06);
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.kahn-insight strong { color: var(--text); }
+
+/* ── Fusion — Memory Timeline ────────────────────────────── */
+.mem-timeline {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(239,68,68,0.15);
+  background: rgba(239,68,68,0.04);
+}
+.mem-timeline-after {
+  border-color: rgba(0,255,200,0.15);
+  background: rgba(0,255,200,0.04);
+  margin-top: 8px;
+}
+
+.mem-label {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: #f87171;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+.mem-label-after {
+  color: var(--fused);
+}
+
+.mem-flow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.mem-flow-fused {
+  justify-content: center;
+}
+
+.mem-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.mem-stage-fused {
+  flex-basis: auto;
+}
+
+.mem-op {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 9.5px;
+  font-family: var(--mono);
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+.mem-op-active {
+  background: rgba(79,142,247,0.15);
+  border: 1px solid rgba(79,142,247,0.3);
+  color: var(--module);
+}
+.mem-op-fused {
+  background: rgba(0,255,200,0.1);
+  border: 1.5px solid rgba(0,255,200,0.35);
+  color: var(--fused);
+  padding: 6px 16px;
+  animation: fusedGlow 3s ease infinite;
+}
+@keyframes fusedGlow {
+  0%, 100% { box-shadow: 0 0 4px rgba(0,255,200,0.1); }
+  50%      { box-shadow: 0 0 14px rgba(0,255,200,0.3); }
+}
+
+.mem-arrow {
+  font-size: 7.5px;
+  font-family: var(--mono);
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.mem-arrow-write {
+  color: #f87171;
+  background: rgba(239,68,68,0.1);
+  animation: memArrowPulse 3s ease infinite;
+}
+.mem-arrow-read {
+  color: #fbbf24;
+  background: rgba(251,191,36,0.1);
+  animation: memArrowPulse 3s ease infinite 0.5s;
+}
+@keyframes memArrowPulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+
+.mem-ram {
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 8px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: #fca5a5;
+  background: rgba(239,68,68,0.08);
+  border: 1px dashed rgba(239,68,68,0.2);
+  letter-spacing: 0.5px;
+}
+
+.mem-transfer {
+  font-size: 14px;
+  color: rgba(255,255,255,0.15);
+  flex-shrink: 0;
+  user-select: none;
+  align-self: center;
+}
+
+.mem-count {
+  margin-top: 8px;
+  font-size: 9.5px;
+  font-family: var(--mono);
+  text-align: center;
+  padding: 5px 8px;
+  border-radius: 5px;
+}
+.mem-count-bad {
+  color: #fca5a5;
+  background: rgba(239,68,68,0.06);
+  border: 1px solid rgba(239,68,68,0.12);
+}
+.mem-count-good {
+  color: var(--fused);
+  background: rgba(0,255,200,0.05);
+  border: 1px solid rgba(0,255,200,0.12);
+}
+.mem-saved {
+  font-weight: 700;
+  color: var(--fused);
+}
+
+.mem-explainer {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mem-explainer-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 9.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.mem-explainer-row strong { color: var(--text); }
+.mem-icon-slow, .mem-icon-fast {
+  font-size: 14px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
