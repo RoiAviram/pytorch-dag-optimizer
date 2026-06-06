@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <!-- vis-network for interactive graph rendering -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/standalone/umd/vis-network.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=1.4" />
+  <link rel="stylesheet" href="style.css?v=1.5" />
 </head>
 <body>
 
@@ -216,39 +216,8 @@
 
         <!-- Educational Section -->
         <div class="welcome-edu-container">
-          <h3 class="edu-main-title">AI Inference Acceleration</h3>
-          
-          <div class="edu-grid">
-            <!-- Column 1: The Assembly Line -->
-            <div class="edu-card">
-              <div class="edu-card-icon">⚙️</div>
-              <h4 class="edu-card-title">1. Tracing the Assembly Line</h4>
-              <p class="edu-card-text">
-                Think of a neural network as a factory assembly line. Each operation (like a Convolution) is a worker. We map this flow as a Directed Graph (DAG) to see exactly how data moves from worker to worker.
-              </p>
-            </div>
+          <h3 class="edu-main-title">AI Inference Accelerator — PyTorch Model to Optimized JSON</h3>
 
-            <!-- Column 2: The Schedule -->
-            <div class="edu-card">
-              <div class="edu-card-icon">📅</div>
-              <h4 class="edu-card-title">2. Smart Scheduling</h4>
-              <p class="edu-card-text">
-                We use **Topological Sorting** (Kahn's BFS algorithm) to schedule execution. This ensures workers only run when all their dependencies are ready, providing a deadlock-free, sequential checklist.
-              </p>
-            </div>
-
-            <!-- Column 3: Fusing for Memory -->
-            <div class="edu-card">
-              <div class="edu-card-icon">⚡</div>
-              <h4 class="edu-card-title">3. Fusing Operations</h4>
-              <p class="edu-card-text">
-                Usually, workers save intermediate results to main memory (RAM/VRAM) before the next worker reads them back. Fusing operations (like Conv-BN-ReLU) lets the processor calculate them together in-register. By skipping memory writes, we **eliminate temporary buffers**, saving memory (preventing Out-of-Memory crashes) and speeding up execution.
-              </p>
-            </div>
-          </div>
-
-          <h3 class="edu-main-title" style="margin-top: 30px;">Model Lifecycle & The Optimized JSON</h3>
-          
           <div class="edu-lifecycle-container">
             <div class="edu-lifecycle-box">
               <h4 class="edu-lifecycle-title">The AI Model Lifecycle: Training to Inference</h4>
@@ -265,6 +234,37 @@
               <p class="edu-lifecycle-text">
                 Most edge devices (like smart cameras, mobile chips, or cars) have very limited hardware resources and cannot run Python. Python requires a large software stack, consumes excessive CPU overhead, and has threading locks that slow down execution.
                 <br/>The downloaded JSON is a language-independent blueprint. It allows developers to load the optimized model directly into highly efficient C++ runtimes (LibTorch) or edge compiler frameworks (TVM, OpenVINO) to run predictions at maximum speed using **zero Python**.
+              </p>
+            </div>
+          </div>
+
+          <h3 class="edu-main-title" style="margin-top: 30px;">How It Works</h3>
+          
+          <div class="edu-grid">
+            <!-- Column 1: The Assembly Line -->
+            <div class="edu-card">
+              <div class="edu-card-icon">⚙️</div>
+              <h4 class="edu-card-title">1. Graph Tracing &amp; Mapping</h4>
+              <p class="edu-card-text">
+                Think of a neural network as a factory assembly line. Each operation (like a Convolution) is a worker. We map this flow as a Directed Graph (DAG) to see exactly how data moves from worker to worker.
+              </p>
+            </div>
+
+            <!-- Column 2: The Schedule -->
+            <div class="edu-card">
+              <div class="edu-card-icon">📅</div>
+              <h4 class="edu-card-title">2. Topological Scheduling</h4>
+              <p class="edu-card-text">
+                We use <strong>Topological Sorting</strong> (Kahn's BFS algorithm) to schedule execution. This ensures workers only run when all their dependencies are ready, providing a deadlock-free, sequential checklist.
+              </p>
+            </div>
+
+            <!-- Column 3: Fusing for Memory -->
+            <div class="edu-card">
+              <div class="edu-card-icon">⚡</div>
+              <h4 class="edu-card-title">3. Operator Fusion</h4>
+              <p class="edu-card-text">
+                Usually, workers save intermediate results to main memory (RAM/VRAM) before the next worker reads them back. Fusing operations (like Conv-BN-ReLU) lets the processor calculate them together in-register. By skipping memory writes, we <strong>eliminate temporary buffers</strong>, saving memory (preventing Out-of-Memory crashes) and speeding up execution.
               </p>
             </div>
           </div>
