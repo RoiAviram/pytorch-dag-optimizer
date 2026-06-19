@@ -4,7 +4,7 @@
 
 An interactive web application that traces, visualizes, and **automatically optimizes** PyTorch neural network computation graphs using graph algorithms and operator fusion techniques.
 
-🔗 **Live Demo**: [https://pytorch-dag-optimizer.onrender.com](https://pytorch-dag-optimizer.onrender.com) *(free tier — wakes in ~20 seconds)*
+🔗 **Live Demo**: [https://pytorch-dag-optimizer.onrender.com](https://pytorch-dag-optimizer.onrender.com) *(free tier — wakes in ~30 seconds)*
 
 ---
 
